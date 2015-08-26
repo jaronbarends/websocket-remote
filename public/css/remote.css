@@ -1,11 +1,11 @@
 /*-- Start reset --*/
-	a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,button,canvas,caption,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,input,ins,kbd,label,legend,li,mark form,menu,nav,object,ol,option,output,p,pre,q,ruby,s,samp,section,select,small,span,strike,strong,sub,summary,sup,table,tbody,td,textarea,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;border:0;padding:0;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
-	button,input[type=checkbox],input[type=image],input[type=radio],input[type=submit],label{cursor:pointer}
-	strong{font-weight:700}
-	em{font-style:italic}
-	.fList{list-style:none}
-	sub, sup {font-size: 0.8em;vertical-align:sub;}
-	sup { vertical-align: super;}
+a,abbr,acronym,address,applet,article,aside,audio,b,big,blockquote,body,button,canvas,caption,cite,code,dd,del,details,dfn,div,dl,dt,em,embed,fieldset,figcaption,figure,footer,h1,h2,h3,h4,h5,h6,header,hgroup,html,i,iframe,img,input,ins,kbd,label,legend,li,mark form,menu,nav,object,ol,option,output,p,pre,q,ruby,s,samp,section,select,small,span,strike,strong,sub,summary,sup,table,tbody,td,textarea,tfoot,th,thead,time,tr,tt,u,ul,var,video{margin:0;border:0;padding:0;font:inherit;vertical-align:baseline}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}blockquote,q{quotes:none}blockquote:after,blockquote:before,q:after,q:before{content:'';content:none}table{border-collapse:collapse;border-spacing:0}
+button,input[type=checkbox],input[type=image],input[type=radio],input[type=submit],label{cursor:pointer}
+strong{font-weight:700}
+em{font-style:italic}
+.fList{list-style:none}
+sub, sup {font-size: 0.8em;vertical-align:sub;}
+sup { vertical-align: super;}
 /*-- End reset --*/
 
 html {
@@ -47,36 +47,104 @@ body {
 }
 
 .container {
-	  -webkit-perspective: 300;
-	  perspective: 300;
+	-webkit-perspective: 300;
+	perspective: 300;
 }
 
-.remote {
-	box-sizing: border-box;
-	position: absolute;
-	top: 20px;
-	left: 50%;
-	margin-left: -50px;
-	border-radius: 8px;
-	padding: 25px 5px;
+/* remote device */
+
+/* measurements
+* width: 100px;
+* height: 200px;
+* thickness: 20px
+*/
+
+.device-container {
+	/*box-sizing: border-box;*/
+	position: relative;
+	margin: 20px auto;
 	width: 100px;
 	height: 200px;
-	background: black;
+	perspective: 1000px;
+	border: 1px solid #999;
 }
 
-.remote__screen {
-	height: 100%;
-	width: 100%;
-	background: #666;
-}
-
-.remote__button {
+.device {
 	position: absolute;
-	bottom: 5px;
-	left: 50%;
-	margin-left: -8px;
-	width: 16px;
-	height: 16px;
-	border-radius: 50%;
-	background: rgba(255, 255, 255, 0.3);
+	transform-style: preserve-3d;
+	width: 100%;
+	height: 100%;
+}
+
+	.device__face {
+		position: absolute;
+		/*box-sizing: border-box;*/
+		/*border: 1px solid #000;*/
+	}
+
+	.device__face--front,
+	.device__face--back {
+		width: 100%;
+		height: 100%;
+	}
+
+	.device__face--front {
+		background: #222;
+		transform: rotateX(0) translateZ(10px);/* t/2 */
+	}
+
+	.device__screen {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		margin: 25px 5px;
+		background: #666;
+	}
+
+	.device__button {
+		position: absolute;
+		bottom: 5px;
+		left: 50%;
+		margin-left: -8px;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: rgba(255, 255, 255, 0.3);
+	}
+
+.device__face--back {
+	transform: rotateY(180deg) translateZ(10px);/* t/2 */
+	background: #ccc;
+}
+
+.device__face--left,
+.device__face--right {
+	width: 20px;/* t */
+	height: 100%;
+	background: #999;
+}
+
+.device__face--left {
+	transform: rotateY(-90deg) translateZ(10px);/* translate half its own width */
+}
+
+.device__face--right {
+	transform: rotateY(90deg) translateZ(90px);/* device-width - half face-width */
+}
+
+.device__face--top,
+.device__face--bottom {
+	width: 100%;
+	height: 20px; /* t */
+	background: #999;
+}
+
+.device__face--top {
+	transform: rotateX(90deg) translateZ(10px);
+}
+
+.device__face--bottom {
+	transform: rotateX(-90deg) translateZ(190px);/* device-height - half face-height */
 }

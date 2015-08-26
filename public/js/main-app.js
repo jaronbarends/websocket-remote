@@ -7,7 +7,8 @@
 	var sgSocket,
 		sgUserId = '',
 		$sgNumber,
-	$remote = $('.remote');
+		$sgGyroTable = $('#gyro-table'),
+		$device = $('.device');
 
 	
 	//-- Start general stuff (for both main and remote) --
@@ -54,7 +55,7 @@
 			var deg = data.x,
 				rotate = 'rotate('+deg+'deg)';
 
-			$remote.css({'transform': rotate});
+			//$device.css({'transform': rotate});
 		};
 
 
@@ -63,17 +64,44 @@
 		* @param {string} varname Description
 		* @returns {undefined}
 		*/
+		var showGyroData = function(data) {
+			var h = '<tr>';
+				h += '<td>'+data.tiltLR+'</td>';
+				h += '<td>'+data.tiltFB+'</td>';
+				h += '<td>'+data.dir+'</td>';
+				h += '</td>';
+
+			$sgGyroTable.append(h);
+			var $trs = $sgGyroTable.find('tr');
+			if ($trs.length === 12) {
+				$trs.eq(1).remove();
+			}
+		};
+		
+
+
+		/**
+		* 
+		* @param {string} varname Description
+		* @returns {undefined}
+		*/
 		var gyroHandler = function(data) {
+			data.tiltFB -= 90;//tiltFB = 0 when remote device is horizontal, we want it to correspond with vertical screen
+			data.dir += 50;
+			var rotateLR = "rotate3d(0,0,1, "+ data.tiltLR +"deg)",
+				rotateFB = "rotate3d(1,0,0, "+ (data.tiltFB*-1)+"deg)",
+				rotateDir = "rotate3d(0,0,1, "+(data.dir*-1)+"deg)";
 			var css = {
-				transform: "rotate("+ data.tiltLR +"deg) rotate3d(1,0,0, "+ (data.tiltFB*-1)+"deg)"
+				transform: rotateLR+' '+rotateFB+' '+rotateDir
 			};
 			// logo.style.webkitTransform = "rotate("+ tiltLR +"deg) rotate3d(1,0,0, "+ (tiltFB*-1)+"deg)";
 			// logo.style.MozTransform = "rotate("+ tiltLR +"deg)";
 			// logo.style.transform = "rotate("+ tiltLR +"deg) rotate3d(1,0,0, "+ (tiltFB*-1)+"deg)";
 
-			$remote.css(css);
+			$device.css(css);
+			showGyroData(data);
 		};
-		
+
 		
 
 
