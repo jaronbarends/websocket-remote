@@ -53,24 +53,6 @@
 	};
 
 
-	
-
-	/**
-	* 
-	* @param {string} varname Description
-	* @returns {undefined}
-	*/
-	var incrementHandler = function(e) {
-		var $a = $(e.currentTarget),
-			inc = parseInt($a.attr('data-increment'), 10),
-			data = {
-				inc: inc
-			};
-
-		sgSocket.emit('change', data);
-	};
-
-
 	/**
 	* 
 	* @param {string} varname Description
@@ -142,11 +124,8 @@
 	var initRemote = function() {
 		initIdentifier();
 		initSocketListeners();
-		//initTilt();
 		initGyro();
 		enterRoom();
-
-		$('.btn--increment').on('click', incrementHandler);
 	};
 	
 	

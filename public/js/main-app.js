@@ -6,7 +6,6 @@
 	// with sg so we can easily distinguish them from "normal" vars
 	var sgSocket,
 		sgUserId = '',
-		$sgNumber,
 		$sgGyroTable = $('#gyro-table'),
 		deviceIdPrefix = 'device-',//prefix used for device elements' ids
 		$device = $('.device'),
@@ -58,7 +57,7 @@
 		* @returns {undefined}
 		*/
 		var newUserHandler = function(data) {
-			console.log('new user has entered: '+data.id+' ('+data.role+')');
+			//console.log('new user has entered: '+data.id+' ('+data.role+')');
 			if (data.role === 'remote') {
 				createDevice(data);
 			}
@@ -130,7 +129,6 @@
 		var initSocketListeners = function() {
 			sgSocket.on('accepted', acceptedHandler);
 			sgSocket.on('newuser', newUserHandler);
-			sgSocket.on('change', changeHandler);
 			sgSocket.on('tiltchange', gyroHandler);
 		};
 
@@ -167,20 +165,6 @@
 
 
 	//-- Start main stuff --
-		
-		/**
-		* 
-		* @param {string} varname Description
-		* @returns {undefined}
-		*/
-		var changeHandler = function(data) {
-			var inc = data.inc,
-				number = parseInt($sgNumber.text(), 10);
-
-			number += inc;
-			number = Math.max(0, number);
-			$sgNumber.text(number);
-		};
 
 
 		/**
@@ -189,8 +173,6 @@
 		* @returns {undefined}
 		*/
 		var initApp = function() {
-			$sgNumber =  $('#main-number');
-
 			initIdentifier();
 			initSocketListeners();
 			enterRoom();

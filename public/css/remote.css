@@ -23,17 +23,6 @@ body {
 	font-weight: bold;
 }
 
-.qr-box {
-	float: right;
-	width: 150px;
-}
-
-.qr-box img {
-	display: block;
-	width: 100%;
-	height: auto;
-}
-
 .btn--increment {
 	display: inline-block;
 	margin: 10px;
