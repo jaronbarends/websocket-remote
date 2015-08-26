@@ -18,26 +18,11 @@ body {
 	line-height: 1.5;
 }
 
-.main-number {
-	font-size: 5em;
-	font-weight: bold;
-}
-
-.btn--increment {
-	display: inline-block;
-	margin: 10px;
-	width: 60px;
-	height: 60px;
-	background: #eee;
-	border-radius: 4px;
-	text-align: center;
-	vertical-align: middle;
-	text-decoration: none;
-}
-
-.container {
-	-webkit-perspective: 300;
-	perspective: 300;
+.color-square {
+	/*position: absolute;*/
+	width: 20px;
+	height: 20px;
+	margin: 20px;
 }
 
 /* remote device */
@@ -48,14 +33,17 @@ body {
 * thickness: 20px
 */
 
-.device-3d-container {
-	/*box-sizing: border-box;*/
-	position: relative;
+.user-device {
+	float: left;
 	margin: 50px 100px;
+	text-align: center;
+}
+
+.device-3d-container {
+	position: relative;
 	width: 100px;
 	height: 200px;
-	perspective: 1000px;
-	/*border: 1px solid #999;*/
+	perspective: 500px;
 }
 
 .device {
@@ -67,8 +55,6 @@ body {
 
 	.device__face {
 		position: absolute;
-		/*box-sizing: border-box;*/
-		/*border: 1px solid #000;*/
 	}
 
 	.device__face--front,

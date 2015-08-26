@@ -41,6 +41,7 @@ var room = io.on('connection', function (socket) {
 	});
 
 	socket.on('enter', function(data) {
+		console.log(data);
 
 		var newuserData = data,
 			acceptanceData = {};

@@ -7,9 +7,8 @@
 	var sgSocket,
 		sgUserId = '',
 		$sgGyroTable = $('#gyro-table'),
-		deviceIdPrefix = 'device-',//prefix used for device elements' ids
-		$device = $('.device'),
-		$devices = $('#devices-container');
+		sgDeviceIdPrefix = 'device-',//prefix used for device elements' ids
+		$sgDevices = $('#devices-container');
 
 	
 	//-- Start general stuff (for both main and remote) --
@@ -41,13 +40,15 @@
 		* @returns {undefined}
 		*/
 		var createDevice = function(data) {
-			var deviceId = deviceIdPrefix+data.id;
-			
-			$('#clone-src')
-				.find('.user-device')
-				.clone()
-				.attr('id', deviceId)
-				.appendTo($devices);
+			var deviceId = sgDeviceIdPrefix+data.id,
+				$clone = $('#clone-src')
+					.find('.user-device')
+					.clone()
+					.attr('id', deviceId)
+					.appendTo($sgDevices);
+
+			$clone.find('.user').text(data.id);
+			$clone.find('.color-square').css('background', data.color);
 		};
 
 
@@ -106,14 +107,12 @@
 				rotateFB = "rotate3d(1,0,0, "+ (orientation.tiltFB*-1)+"deg)",
 				rotateDir = "rotate3d(0,0,1, "+(orientation.dir*-1)+"deg)";
 
-			var $device = $('#'+deviceIdPrefix+data.id).find('.device');
-			//console.log($device);
+			var $device = $('#'+sgDeviceIdPrefix+data.id).find('.device');//TODO: move devices in array and search array
 			
 			var css = {
 				transform: rotateLR+' '+rotateFB+' '+rotateDir
 			};
 
-			var $device = 
 			$device.css(css);
 			//showGyroData(data);
 		};

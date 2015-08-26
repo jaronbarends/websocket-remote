@@ -6,7 +6,7 @@
 	// with sg so we can easily distinguish them from "normal" vars
 	var sgSocket,
 		sgUserId = '',
-		sgTilt = {},
+		sgUserColor,
 		sgGyro = {};
 
 	
@@ -61,12 +61,30 @@
 	var enterRoom = function() {
 		var data = {
 				role: 'remote',
-				id: sgUserId
+				id: sgUserId,
+				color: sgUserColor
 			};
+		console.log(data);
 
 		//tell socket we want to enter the session
 		sgSocket.emit('enter', data);
 	};
+
+
+	/**
+	* 
+	* @param {string} varname Description
+	* @returns {undefined}
+	*/
+	var setUserColor = function() {
+		var colors = ['AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 'Black', 'BlanchedAlmond', 'Blue', 'BlueViolet', 'Brown', 'BurlyWood', 'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk', 'Crimson', 'Cyan', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray', 'DarkGreen', 'DarkKhaki', 'DarkMagenta', 'DarkOliveGreen', 'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 'DarkSlateBlue', 'DarkSlateGray', 'DarkTurquoise', 'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DodgerBlue', 'FireBrick', 'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite', 'Gold', 'GoldenRod', 'Gray', 'Green', 'GreenYellow', 'HoneyDew', 'HotPink', 'IndianRed ', 'Indigo ', 'Ivory', 'Khaki', 'Lavender', 'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral', 'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSteelBlue', 'LightYellow', 'Lime', 'LimeGreen', 'Linen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumSpringGreen', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 'MintCream', 'MistyRose', 'Moccasin', 'NavajoWhite', 'Navy', 'OldLace', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleGoldenRod', 'PaleGreen', 'PaleTurquoise', 'PaleVioletRed', 'PapayaWhip', 'PeachPuff', 'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple', 'RebeccaPurple', 'Red', 'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue', 'SlateGray', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 'YellowGreen'],
+		len = colors.length;
+
+		sgUserColor = colors[Math.floor(len*Math.random())];
+
+		$('.color-square').css('background', sgUserColor);
+	};
+	
 
 
 
@@ -103,7 +121,7 @@
 	* @returns {undefined}
 	*/
 	var initGyro = function() {
-		sgTilt = {
+		sgGyro = {
 			tiltLR: 0,
 			tiltFB: 0,
 			dir: 0
@@ -123,6 +141,7 @@
 	*/
 	var initRemote = function() {
 		initIdentifier();
+		setUserColor();
 		initSocketListeners();
 		initGyro();
 		enterRoom();
