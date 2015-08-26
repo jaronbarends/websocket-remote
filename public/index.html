@@ -29,18 +29,7 @@
 
 	<div id="main-number" class="main-number">1</div>
 
-	<div class="device-container">
-		<div class="device">
-			<div class="device__face device__face--front">
-				<div class="device__screen"></div>
-				<div class="device__button"></div>
-			</div>
-			<div class="device__face device__face--back">back</div>
-			<div class="device__face device__face--left">L</div>
-			<div class="device__face device__face--right">R</div>
-			<div class="device__face device__face--top">T</div>
-			<div class="device__face device__face--bottom">B</div>
-		</div>
+	<div id="devices-container" class="devices-container">
 	</div>
 
 	<table id="gyro-table" class="gyro-table">
@@ -50,6 +39,27 @@
 			<th>dir (alpha)</th>
 		</tr>
 	</table>
+
+	<div id="clone-src" class="u-hidden">
+
+		<div class="user-device">
+			<!-- user name here -->
+			<div class="device-3d-container">
+				<div class="device">
+					<div class="device__face device__face--front">
+						<div class="device__screen"></div>
+						<div class="device__button"></div>
+					</div>
+					<div class="device__face device__face--back"></div>
+					<div class="device__face device__face--left"></div>
+					<div class="device__face device__face--right"></div>
+					<div class="device__face device__face--top"></div>
+					<div class="device__face device__face--bottom"></div>
+				</div>
+			</div>
+		</div>
+
+	</div>
 
 	<!-- Including the JS libraries that we use -->
 	<script src="//code.jquery.com/jquery-2.1.3.min.js"></script>

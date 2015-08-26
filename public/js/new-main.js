@@ -9,7 +9,7 @@
 		$sgNumber,
 		$sgGyroTable = $('#gyro-table'),
 		deviceIdPrefix = 'device-',//prefix used for device elements' ids
-		$device = $('.device'),
+		//$device = $('.device'),
 		$devices = $('#devices-container');
 
 	
@@ -42,14 +42,14 @@
 		* @returns {undefined}
 		*/
 		var createDevice = function(data) {
-			var deviceId = deviceIdPrefix+data.id;
-			
-			$('#clone-src')
-				.find('.user-device')
-				.clone()
-				.attr('id', deviceId)
-				.appendTo($devices);
+			var deviceId = deviceIdPrefix+data.id,
+				$device = $('#clone-src')
+					.find('.user-device')
+					.clone()
+					.attr('id', deviceId)
+					.appendTo($devices);
 		};
+		
 
 
 		/**
@@ -73,7 +73,6 @@
 		*/
 		var showGyroData = function(data) {
 			var orientation = data.orientation;
-
 			var h = '<tr>';
 				h += '<td>'+orientation.tiltLR+'</td>';
 				h += '<td>'+orientation.tiltFB+'</td>';
@@ -86,6 +85,25 @@
 				$trs.eq(1).remove();
 			}
 		};
+
+
+		/**
+		* change a specific device's orientation
+		* @param {string} varname Description
+		* @returns {undefined}
+		*/
+		var changeDeviceRotation = function(id, rotation) {
+			//first get the device we need
+			var deviceId = deviceIdPrefix+data.id,
+			$device = $('#'+deviceId);
+			
+			var css = {
+				transform: rotation
+			};
+
+			$device.css(css);
+		};
+		
 		
 
 
@@ -95,9 +113,11 @@
 		* @returns {undefined}
 		*/
 		var gyroHandler = function(data) {
-			var orientation = data.orientation;
-
-			var dirCorrection = 0;//direction is determined by the devices angle relative to the screen at the time of connecting
+			/* one of the devices has a tiltchange */
+			console.log(data);
+			var id = data.id,
+				orientation = data.orientation,
+				dirCorrection = 0;//direction is determined by the devices angle relative to the screen at the time of connecting
 				//TODO: has to be callibrated by pointing to screen
 
 			orientation.tiltFB -= 90;//tiltFB = 0 when remote device is horizontal, we want it to correspond with vertical screen
@@ -105,18 +125,11 @@
 
 			var rotateLR = "rotate3d(0,0,1, "+ orientation.tiltLR +"deg)",
 				rotateFB = "rotate3d(1,0,0, "+ (orientation.tiltFB*-1)+"deg)",
-				rotateDir = "rotate3d(0,0,1, "+(orientation.dir*-1)+"deg)";
+				rotateDir = "rotate3d(0,0,1, "+(orientation.dir*-1)+"deg)",
+				rotation = rotateLR+' '+rotateFB+' '+rotateDir;
 
-			var $device = $('#'+deviceIdPrefix+data.id).find('.device');
-			//console.log($device);
-			
-			var css = {
-				transform: rotateLR+' '+rotateFB+' '+rotateDir
-			};
-
-			var $device = 
-			$device.css(css);
-			//showGyroData(data);
+			changeDeviceRotation(id, rotation);
+			showGyroData(data);
 		};
 
 		

@@ -16,7 +16,7 @@
 
 			console.log(remoteUrl);
 		
-		$qrBox.append('<img src="'+qrSrc+'">');
+		$qrBox.append('<img src="'+qrSrc+'"><br>'+remoteUrl);
 	};
 
 

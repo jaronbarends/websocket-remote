@@ -93,13 +93,57 @@
 	* @param {string} varname Description
 	* @returns {undefined}
 	*/
+	var tiltHandler = function(e, data) {
+
+		var x = Math.round(data.x),
+			y = Math.round(data.y),
+			z = Math.round(data.z);
+
+		if (sgTilt.x != x || sgTilt.y != y || sgTilt.z != z) {
+			sgTilt = {
+				x: x,
+				y: y,
+				z: z
+			};
+
+			var data = {
+				id: sgUserId,
+				orientation: sgTilt
+			};
+			sgSocket.emit('tiltchange', data)
+		}
+	};
+
+
+	/**
+	* 
+	* @param {string} varname Description
+	* @returns {undefined}
+	*/
+	var initTilt = function() {
+		sgTilt = {
+			x: 0,
+			y: 0,
+			z: 0
+		};
+
+		$('body').on('tiltchange.tiltfactor', tiltHandler);
+	};
+
+
+
+	/**
+	* when remote is tilted, send its data to the socket
+	* @param {string} varname Description
+	* @returns {undefined}
+	*/
 	var gyroHandler = function(e, data) {
 
 		var tiltLR = Math.round(data.tiltLR),
 			tiltFB = Math.round(data.tiltFB),
 			dir = Math.round(data.dir);
 
-		if (sgGyro.tiltLR !== tiltLR || sgGyro.tiltFB !== tiltFB || sgGyro.dir !== dir) {
+		if (sgGyro.tiltLR != tiltLR || sgGyro.tiltFB != tiltFB || sgGyro.dir != dir) {
 			sgGyro = {
 				tiltLR: tiltLR,
 				tiltFB: tiltFB,
@@ -108,7 +152,7 @@
 
 			var newData = {
 				id: sgUserId,
-				orientation: sgGyro
+				orientation: sgTilt
 			};
 			sgSocket.emit('tiltchange', newData);
 		}
