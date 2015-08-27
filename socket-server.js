@@ -57,11 +57,6 @@ var room = io.on('connection', function (socket) {
 
 	});
 
-	socket.on('change', function(data) {
-
-		room.emit('change', data);
-	});
-
 	socket.on('tiltchange', function(data) {
 
 		room.emit('tiltchange', data);

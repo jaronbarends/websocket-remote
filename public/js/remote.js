@@ -1,4 +1,4 @@
-(function($) {
+;(function($) {
 
 	'use strict';
 
@@ -6,39 +6,40 @@
 	// with sg so we can easily distinguish them from "normal" vars
 	var sgSocket,
 		sgUserId = '',
+		sgUsername = '',
+		sgRole = 'remote',
 		sgUserColor,
-		sgGyro = {};
+		sgOrientation = {};
 
 	
 	/**
 	* add identifier for this user
-	* @param {string} varname Description
 	* @returns {undefined}
 	*/
 	var initIdentifier = function() {
-		sgUserId = Math.ceil(1000*Math.random());
+		sgUserId = sgUsername = sgRole+'-'+Math.ceil(1000*Math.random());
 		$('#id-box').find('.user-id').text(sgUserId);
 	};
 
 
 	/**
-	* 
-	* @param {string} varname Description
+	* handle socket's acceptance of entry request
+	* @param {object} data Data sent by the socket (currently empty)
 	* @returns {undefined}
 	*/
 	var acceptedHandler = function(data) {
 		//this remote has been accepted into the room
-		console.log('you\'re now added to the room');
+		$('#login-form').hide();
 	};
 
 
 	/**
-	* 
-	* @param {string} varname Description
+	* handle entry of new user in the room
+	* @param {object} data Info about the entering user
 	* @returns {undefined}
 	*/
 	var newUserHandler = function(data) {
-		console.log('new user has entered: '+data.id+' ('+data.role+')');
+		//console.log('new user has entered: '+data.id+' ('+data.role+')');
 	};
 
 
@@ -54,26 +55,23 @@
 
 
 	/**
-	* 
-	* @param {string} varname Description
+	* send event to server to request entry to room
 	* @returns {undefined}
 	*/
 	var enterRoom = function() {
 		var data = {
-				role: 'remote',
+				role: sgRole,
 				id: sgUserId,
+				username: sgUsername,
 				color: sgUserColor
 			};
-		console.log(data);
 
-		//tell socket we want to enter the session
 		sgSocket.emit('enter', data);
 	};
 
 
 	/**
-	* 
-	* @param {string} varname Description
+	* set an identifying color for this user
 	* @returns {undefined}
 	*/
 	var setUserColor = function() {
@@ -82,25 +80,26 @@
 
 		sgUserColor = colors[Math.floor(len*Math.random())];
 
-		$('.color-square').css('background', sgUserColor);
+		$('.user-color').css('background', sgUserColor);
 	};
 	
 
 
 
 	/**
-	* when remote is tilted, send its data to the socket
-	* @param {string} varname Description
+	* when remote is tilted, send orientation data and this device's id to the socket
+	* @param {event} e The tiltchange.deviceorientation event sent by device-orientation.js
+	* @param {object} data Data sent accompanying the event
 	* @returns {undefined}
 	*/
-	var gyroHandler = function(e, data) {
+	var tiltChangeHandler = function(e, data) {
 
 		var tiltLR = Math.round(data.tiltLR),
 			tiltFB = Math.round(data.tiltFB),
 			dir = Math.round(data.dir);
 
-		if (sgGyro.tiltLR !== tiltLR || sgGyro.tiltFB !== tiltFB || sgGyro.dir !== dir) {
-			sgGyro = {
+		if (sgOrientation.tiltLR !== tiltLR || sgOrientation.tiltFB !== tiltFB || sgOrientation.dir !== dir) {
+			sgOrientation = {
 				tiltLR: tiltLR,
 				tiltFB: tiltFB,
 				dir: dir
@@ -108,7 +107,7 @@
 
 			var newData = {
 				id: sgUserId,
-				orientation: sgGyro
+				orientation: sgOrientation
 			};
 			sgSocket.emit('tiltchange', newData);
 		}
@@ -116,43 +115,57 @@
 
 
 	/**
-	* 
-	* @param {string} varname Description
+	* initialize stuff for handling device orientation changes
+	* listen for events triggered on body by device-orientation.js
 	* @returns {undefined}
 	*/
-	var initGyro = function() {
-		sgGyro = {
+	var initDeviceOrientation = function() {
+		sgOrientation = {
 			tiltLR: 0,
 			tiltFB: 0,
 			dir: 0
 		};
 
-		$('body').on('tiltchange.gyro', gyroHandler);
+		$('body').on('tiltchange.deviceorientation', tiltChangeHandler);
 	};
 
-	
+
+
+	/**
+	* initialize the login form
+	* @returns {undefined}
+	*/
+	var initLoginForm = function() {
+		$('#login-form').on('submit', function(e) {
+			e.preventDefault();
+
+			var $form = $(e.currentTarget);
+			sgUsername = $form.find('[name="username"]').val() || sgUsername;
+
+			enterRoom();
+		});
+	};
 	
 
 
 	/**
-	* 
-	* @param {string} varname Description
+	* initialize the remote
 	* @returns {undefined}
 	*/
 	var initRemote = function() {
 		initIdentifier();
 		setUserColor();
 		initSocketListeners();
-		initGyro();
-		enterRoom();
+		initDeviceOrientation();
+		initLoginForm();
+		//enterRoom();
 	};
-	
-	
 
 
 	/**
-	* 
-	* @param {string} varname Description
+	* kick off the app once the socket is ready
+	* @param {event} e The ready.socket event sent by socket js
+	* @param {object} data Data object accompanying the event, containing reference to socket
 	* @returns {undefined}
 	*/
 	var socketReadyHandler = function(e, data) {
@@ -164,8 +177,8 @@
 	
 	
 	/**
-	* 
-	* @param {string} varname Description
+	* initialize the app
+	* (or rather: set a listener for the socket to be ready, the handler will initialize the app)
 	* @returns {undefined}
 	*/
 	var init = function() {

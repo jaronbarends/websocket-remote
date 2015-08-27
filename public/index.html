@@ -5,20 +5,21 @@
 
 	<meta charset="utf-8">
 
-	<title></title>
+	<title>Hub</title>
 
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
 
-	<link type="text/css" rel="stylesheet" href="css/remote.css" />
+	<link type="text/css" rel="stylesheet" href="css/shared.css" />
+	<link type="text/css" rel="stylesheet" href="css/hub.css" />
 	<link type="text/css" rel="stylesheet" href="css/qr-code.css" />
 
 </head>
 
 <body>
-	<h1>main</h1>
+	<h1>Main hub</h1>
 	<div id="qr-box" class="qr-box">
 		QR-code for remote:
 		<div id="qr-code" class="qr-code"></div>
@@ -53,7 +54,7 @@
 				<div class="device">
 					<div class="device__face device__face--front">
 						<div class="device__screen">
-							<div class="color-square"></div>
+							<div class="user-color"></div>
 						</div>
 						<div class="device__button"></div>
 					</div>
@@ -76,9 +77,9 @@
 	<script src="/socket.io/socket.io.js"></script>
 
 	<!-- Main JavaScript file -->
-	<script src="js/main-app.js"></script>
+	<script src="js/hub.js"></script>
 	<script src="js/socket.js"></script>
-	<script src="js/addQRCode.js"></script>
+	<script src="js/add-qr-code.js"></script>
 
 </body>
 </html>
