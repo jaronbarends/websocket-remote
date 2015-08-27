@@ -5,11 +5,11 @@
 	// define semi-global variables (vars that are "global" in this file's scope) and prefix them
 	// with sg so we can easily distinguish them from "normal" vars
 	var sgSocket,
-		sgUserId = '',
 		sgUsername = '',
 		sgRole = 'remote',
 		sgUserColor,
-		sgOrientation = {};
+		sgOrientation = {},
+		sgOrientationAbsolute = null;
 
 	
 	/**
@@ -17,8 +17,7 @@
 	* @returns {undefined}
 	*/
 	var initIdentifier = function() {
-		sgUserId = sgUsername = sgRole+'-'+Math.ceil(1000*Math.random());
-		$('#id-box').find('.user-id').text(sgUserId);
+		$('#id-box').find('.user-id').text(sgSocket.id);
 	};
 
 
@@ -29,6 +28,7 @@
 	*/
 	var acceptedHandler = function(data) {
 		//this remote has been accepted into the room
+
 		$('#login-form').hide();
 	};
 
@@ -44,7 +44,7 @@
 
 
 	/**
-	* add event listeners for socket
+	* add event listeners for so cket
 	* @param {string} varname Description
 	* @returns {undefined}
 	*/
@@ -61,7 +61,7 @@
 	var enterRoom = function() {
 		var data = {
 				role: sgRole,
-				id: sgUserId,
+				id: sgSocket.id,
 				username: sgUsername,
 				color: sgUserColor
 			};
@@ -96,7 +96,12 @@
 
 		var tiltLR = Math.round(data.tiltLR),
 			tiltFB = Math.round(data.tiltFB),
-			dir = Math.round(data.dir);
+			dir = Math.round(data.dir),
+			absolute = data.absolute;
+
+		if (sgOrientationAbsolute === null) {
+			sgOrientationAbsolute = absolute;
+		}
 
 		if (sgOrientation.tiltLR !== tiltLR || sgOrientation.tiltFB !== tiltFB || sgOrientation.dir !== dir) {
 			sgOrientation = {
@@ -106,7 +111,7 @@
 			};
 
 			var newData = {
-				id: sgUserId,
+				id: sgSocket.id,
 				orientation: sgOrientation
 			};
 			sgSocket.emit('tiltchange', newData);
@@ -154,6 +159,7 @@
 	*/
 	var initRemote = function() {
 		initIdentifier();
+		sgUsername = sgSocket.id;
 		setUserColor();
 		initSocketListeners();
 		initDeviceOrientation();
@@ -165,12 +171,12 @@
 	/**
 	* kick off the app once the socket is ready
 	* @param {event} e The ready.socket event sent by socket js
-	* @param {object} data Data object accompanying the event, containing reference to socket
+	* @param {Socket} socket This client's socket
 	* @returns {undefined}
 	*/
-	var socketReadyHandler = function(e, data) {
-		if (data && data.socket) {
-			sgSocket = data.socket;
+	var socketReadyHandler = function(e, socket) {
+		if (socket) {
+			sgSocket = socket;
 			initRemote();
 		}
 	};
@@ -182,7 +188,7 @@
 	* @returns {undefined}
 	*/
 	var init = function() {
-		$(document).on('ready.socket', socketReadyHandler);
+		$(document).on('connectionready.socket', socketReadyHandler);
 	};
 
 	$(document).ready(init);

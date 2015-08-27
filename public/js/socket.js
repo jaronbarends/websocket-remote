@@ -13,7 +13,11 @@
 				socket: socket
 			};
 
-		$(document).trigger('ready.socket', data);
+
+		socket.on('connectionready', function() {
+			console.log('socket.js - connection ready');
+			$(document).trigger('connectionready.socket', socket);
+		});
 	};
 	
 

@@ -5,7 +5,6 @@
 	// define semi-global variables (vars that are "global" in this file's scope) and prefix them
 	// with sg so we can easily distinguish them from "normal" vars
 	var sgSocket,
-		sgUserId = '',
 		sgRole = 'hub',
 		$sgGyroTable = $('#gyro-table'),
 		sgDeviceIdPrefix = 'device-',//prefix used for device elements' ids
@@ -17,8 +16,7 @@
 	* @returns {undefined}
 	*/
 	var initIdentifier = function() {
-		sgUserId = sgRole+'-'+Math.ceil(1000*Math.random());
-		$('#id-box').find('.user-id').text(sgUserId);
+		$('#id-box').find('.user-id').text(sgSocket.id);
 	};
 
 
@@ -137,7 +135,7 @@
 	var enterRoom = function() {
 		var data = {
 				role: sgRole,
-				id: sgUserId
+				id: sgSocket.id,
 			};
 
 		//tell socket we want to enter the session
@@ -162,12 +160,12 @@
 	/**
 	* kick off the app once the socket is ready
 	* @param {event} e The ready.socket event sent by socket js
-	* @param {object} data Data object accompanying the event, containing reference to socket
+	* @param {Socket} socket This client's socket
 	* @returns {undefined}
 	*/
-	var socketReadyHandler = function(e, data) {
-		if (data && data.socket) {
-			sgSocket = data.socket;
+	var socketReadyHandler = function(e, socket) {
+		if (socket) {
+			sgSocket = socket;
 			initHub();
 		}
 	};
@@ -180,7 +178,7 @@
 	* @returns {undefined}
 	*/
 	var init = function() {
-		$(document).on('ready.socket', socketReadyHandler);
+		$(document).on('connectionready.socket', socketReadyHandler);
 	};
 
 	$(document).ready(init);

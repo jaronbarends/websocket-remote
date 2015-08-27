@@ -24,37 +24,31 @@ var io = require('socket.io').listen(app.listen(port));
 app.use(express.static(__dirname + '/public'));
 
 
-// This is a secret key that prevents others from opening your presentation
-// and controlling it. Change it to something that only you know.
-
-var secret = 'kittens';
-
 // Initialize a new socket.io application
 
 var room = io.on('connection', function (socket) {
 
-	// A new client has come online. Check the secret key and 
-	// emit a "granted" or "denied" message.
+	// A new client has come online. 
+	socket.emit('connectionready');
 
 	socket.on('disconnect', function(){
-	  console.log('user disconnected');
+	  console.log('user '+socket.id+' disconnected');
 	});
 
 	socket.on('enter', function(data) {
-		console.log(data);
+		//console.log(data);
 
 		var newuserData = data,
 			acceptanceData = {};
 
-		console.log('socket enter event - id: '+data.id+' ('+data.role+')');
+		console.log('socket enter event ('+data.role+') id:'+data.id);
 
 		//send message to newly accepted user
-		socket.emit('accepted', acceptanceData)
+		socket.emit('accepted', acceptanceData);
 
 		//send message to rest of the room
 		//room.emit('newuser', newuserData);
 		socket.broadcast.emit('newuser', newuserData);
-
 	});
 
 	socket.on('tiltchange', function(data) {
