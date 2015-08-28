@@ -10,7 +10,8 @@
 		sgUserColor,
 		sgOrientation = {},
 		sgCompassCorrection = 0,
-		sgScreenAngle;
+		sgScreenAngle,
+		sgIsHub;
 
 	
 	/**

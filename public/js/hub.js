@@ -6,7 +6,7 @@
 	// with sg so we can easily distinguish them from "normal" vars
 	var sgSocket,
 		sgRole = 'hub',
-		$sgGyroTable = $('#gyro-table'),
+		$sgOrientationTable = $('#orientation-table'),
 		sgDeviceIdPrefix = 'device-',//prefix used for device elements' ids
 		$sgDevices = $('#devices-container');
 
@@ -126,6 +126,7 @@
 		* @returns {undefined}
 		*/
 		var showOrientationData = function(data) {
+			sgOrientationTable.removeClass('u-hidden');
 			var orientation = data.orientation;
 
 			var h = '<tr>';
@@ -134,8 +135,8 @@
 				h += '<td>'+orientation.dir+'</td>';
 				h += '</td>';
 
-			$sgGyroTable.append(h);
-			var $trs = $sgGyroTable.find('tr');
+			$sgOrientationTable.append(h);
+			var $trs = $sgOrientationTable.find('tr');
 			if ($trs.length === 12) {
 				$trs.eq(1).remove();
 			}
