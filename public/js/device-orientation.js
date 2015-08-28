@@ -1,7 +1,8 @@
 ;(function($) {
 
-	var $body = $('body');
-
+	// define semi-global variables (vars that are "global" in this file's scope) and prefix them
+	// with sg so we can easily distinguish them from "normal" vars
+	var $sgBody = $('body');
 
 	/**
 	* handle device orientation change
@@ -14,10 +15,9 @@
 			tiltLR: data.gamma, //left-to-right tilt in degrees, where right is positive
 			tiltFB: data.beta,//front-to-back tilt in degrees, where front is positive
 			dir: data.alpha,//compass direction the device is facing in degrees
-			absolute: data.absolute//whether direction is absolute to north or relative to direction at first call
 		};
 
-		$body.trigger('tiltchange.deviceorientation', newData);
+		$sgBody.trigger('tiltchange.deviceorientation', newData);
 	};
 
 
@@ -30,7 +30,8 @@
 		if (window.DeviceOrientationEvent) {
 			window.addEventListener('deviceorientation', deviceOrientationHandler, false);
 		} else {
-			//console.log('deviceOrientationEvent not supported');
+			//notify the rest of the page deviceorientation is not supported
+			$sgBody.trigger('nosupport.deviceorientation');
 		}
 	};
 	

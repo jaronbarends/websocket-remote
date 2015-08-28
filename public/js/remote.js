@@ -8,8 +8,7 @@
 		sgUsername = '',
 		sgRole = 'remote',
 		sgUserColor,
-		sgOrientation = {},
-		sgOrientationAbsolute = null;
+		sgOrientation = {};
 
 	
 	/**
@@ -117,12 +116,7 @@
 
 		var tiltLR = Math.round(data.tiltLR),
 			tiltFB = Math.round(data.tiltFB),
-			dir = Math.round(data.dir),
-			absolute = data.absolute;
-
-		if (sgOrientationAbsolute === null) {
-			sgOrientationAbsolute = absolute;
-		}
+			dir = Math.round(data.dir);
 
 		if (sgOrientation.tiltLR !== tiltLR || sgOrientation.tiltFB !== tiltFB || sgOrientation.dir !== dir) {
 			sgOrientation = {

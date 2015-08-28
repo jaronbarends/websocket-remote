@@ -39,6 +39,10 @@ var initBasicRequirements = function() {
 */
 var disconnectHandler = function(socket) {
 	console.log('user '+socket.id+' disconnected');
+	var data = {
+		id: socket.id
+	};
+	room.emit('disconnect', data);
 };
 
 

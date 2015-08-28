@@ -41,11 +41,27 @@
 				.find('.user-device')
 				.clone()
 				.attr('id', deviceId)
-				.appendTo($sgDevices);
-
-		$clone.find('.user').text(data.username);
-		$clone.find('.user-color').css('background', data.color);
+				.find('.user')
+					.text(data.username)
+				.end()
+				.find('.user-color')
+					.css('background', data.color)
+				.end()
+				.hide()
+				.appendTo($sgDevices)
+				.fadeIn();
 	};
+
+
+	/**
+	* remove a device from screen
+	* @returns {undefined}
+	*/
+	var removeDevice = function(id) {
+		var deviceId = sgDeviceIdPrefix+id;
+		$('#'+deviceId).fadeOut(function(){$(this).remove();});
+	};
+	
 
 
 	/**
@@ -59,6 +75,18 @@
 			createDevice(data);
 		}
 	};
+
+
+	/**
+	* handle user disconnecting
+	* @param {object} data Object containing disconnected user's id
+	* @returns {undefined}
+	*/
+	var disconnectHandler = function(data) {
+		var id = data.id;
+		removeDevice(id);
+	};
+	
 
 
 	/**
@@ -124,6 +152,7 @@
 	var initSocketListeners = function() {
 		sgSocket.on('accepted', acceptedHandler);
 		sgSocket.on('newuser', newUserHandler);
+		sgSocket.on('disconnect', disconnectHandler);
 		sgSocket.on('tiltchange', tiltChangeHandler);
 	};
 
@@ -142,8 +171,6 @@
 		sgSocket.emit('enter', data);
 	};
 		
-
-
 	
 	/**
 	* initialize this hub when
