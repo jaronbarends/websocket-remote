@@ -28,7 +28,6 @@
 	*/
 	var acceptedHandler = function(data) {
 		//this remote has been accepted into the room
-
 		$('#login-form').hide();
 	};
 
@@ -44,6 +43,16 @@
 
 
 	/**
+	* handle user disconnecting 
+	* @returns {undefined}
+	*/
+	var userDisconnectHandler = function() {
+		
+	};
+	
+
+
+	/**
 	* add event listeners for so cket
 	* @param {string} varname Description
 	* @returns {undefined}
@@ -51,6 +60,7 @@
 	var initSocketListeners = function() {
 		sgSocket.on('accepted', acceptedHandler);
 		sgSocket.on('newuser', newUserHandler);
+		sgSocket.on('disconnect', userDisconnectHandler);
 	};
 
 
@@ -82,8 +92,19 @@
 
 		$('.user-color').css('background', sgUserColor);
 	};
-	
 
+
+	/**
+	* send an event to the socket server that will be passed on to all sockets
+	* @returns {undefined}
+	*/
+	var emitEvent = function(eventName, eventData) {
+		var data = {
+			eventName: eventName,
+			eventData: eventData
+		};
+		sgSocket.emit('passthrough', data);
+	};
 
 
 	/**
@@ -114,7 +135,7 @@
 				id: sgSocket.id,
 				orientation: sgOrientation
 			};
-			sgSocket.emit('tiltchange', newData);
+			emitEvent('tiltchange', newData);
 		}
 	};
 

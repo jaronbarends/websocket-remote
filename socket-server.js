@@ -56,17 +56,20 @@ var enterHandler = function(socket, data) {
 	socket.emit('accepted', acceptanceData);
 
 	//send message to rest of the room
-	//room.emit('newuser', newuserData);
 	socket.broadcast.emit('newuser', newuserData);
 };
 
 
 /**
 * handle event that just has to be passed through to all sockets
+* this way, we don't have to listen for and handle specific events separately
+* @param {object} data Object containing {string} eventName and {object} eventData
 * @returns {undefined}
 */
-var passThroughHandler = function() {
-	
+var passThroughHandler = function(data) {
+	if (data.eventName && data.eventData) {
+		room.emit(data.eventName, data.eventData);
+	}
 };
 
 
@@ -97,8 +100,8 @@ var createRoom = function() {
 			enterHandler(socket, data);
 		});
 
-		socket.on('tiltchange', tiltchangeHandler);
-
+		//set handler for events that only have to be passsed on to all sockets
+		socket.on('passthrough', passThroughHandler);
 	});
 };
 
