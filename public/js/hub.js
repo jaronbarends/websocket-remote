@@ -16,7 +16,8 @@
 	var sgRole = 'hub',
 		$sgOrientationTable = $('#orientation-table'),
 		sgDeviceIdPrefix = 'device-',//prefix used for device elements' ids
-		$sgDevices = $('#devices-container');
+		$sgDevices = $('#devices-container'),
+		sgUserIds = [];//array of userId's, in order of joining
 
 	
 	/**
@@ -74,15 +75,17 @@
 
 	/**
 	* handle entry of new user in the room
-	* @param {object} data Info about the entering user
+	* @param {object} data Info about the joining user
 	* @returns {undefined}
 	*/
 	var newUserHandler = function(data) {
-		//console.log('new user has entered: '+data.id+' ('+data.role+')');
+		//console.log('new user has joined: '+data.id+' ('+data.role+')');
 		if (data.role === 'remote') {
 			createDevice(data);
 		}
-		console.log('new user. number of users:');
+		//data.users is object; transform to array
+		sgUserIds = Object.keys(data.users);
+		console.log('new user. number of users:'+sgUserIds.length);
 		//console.log(data);
 	};
 
@@ -95,7 +98,7 @@
 	var disconnectHandler = function(data) {
 		var id = data.id;
 		removeDevice(id);
-		console.log('disconnect', data);
+		//console.log('disconnect', data);
 	};
 	
 
@@ -173,14 +176,14 @@
 	* send event to server to request entry to room
 	* @returns {undefined}
 	*/
-	var enterRoom = function() {
+	var joinRoom = function() {
 		var data = {
 				role: sgRole,
 				id: io.id,
 			};
 
-		//tell socket we want to enter the session
-		io.emit('enter', data);
+		//tell socket we want to join the session
+		io.emit('join', data);
 	};
 		
 	
@@ -192,7 +195,7 @@
 	var initHub = function() {
 		initIdentifier();
 		initSocketListeners();
-		enterRoom();
+		joinRoom();
 	};
 
 	

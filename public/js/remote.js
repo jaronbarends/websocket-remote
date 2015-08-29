@@ -43,11 +43,11 @@
 
 	/**
 	* handle entry of new user in the room
-	* @param {object} data Info about the entering user
+	* @param {object} data Info about the joining user
 	* @returns {undefined}
 	*/
 	var newUserHandler = function(data) {
-		//console.log('new user has entered: '+data.id+' ('+data.role+')');
+		//console.log('new user has joined: '+data.id+' ('+data.role+')');
 	};
 
 
@@ -77,7 +77,7 @@
 	* send event to server to request entry to room
 	* @returns {undefined}
 	*/
-	var enterRoom = function() {
+	var joinRoom = function() {
 		var data = {
 				role: sgRole,
 				id: io.id,
@@ -85,7 +85,7 @@
 				color: sgUserColor
 			};
 
-		io.emit('enter', data);
+		io.emit('join', data);
 	};
 
 
@@ -174,7 +174,7 @@
 			var $form = $(e.currentTarget);
 			sgUsername = $form.find('[name="username"]').val() || sgUsername;
 
-			enterRoom();
+			joinRoom();
 		});
 	};
 
@@ -214,7 +214,7 @@
 		initDeviceOrientation();
 		initLoginForm();
 		initCallibrationForm();
-		//enterRoom();
+		//joinRoom();
 	};
 
 

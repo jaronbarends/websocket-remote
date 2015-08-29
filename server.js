@@ -36,7 +36,7 @@ var initBasicRequirements = function() {
 
 /**
 * get all users in the room
-* @returns {array} Associative array containing all user id's in the room
+* @returns {object} Object containing all user id's in the room
 */
 var getRoomUsers = function() {
 	var users = io.sockets.adapter.rooms[roomName];
@@ -53,10 +53,16 @@ var getRoomUsers = function() {
 var disconnectHandler = function(socket) {
 	console.log('\n-------------------------------------------');
 	console.log('user '+socket.id+' disconnected\n');
+	console.log(socket.adapter);
 	var data = {
 		id: socket.id,
 		users: getRoomUsers()
 	};
+
+	//io.sockets.adapter contains to objects: rooms and sids which are similar
+	//rooms contains an object for every socket, and one for every room
+	//sids only contains an object for every socket.
+	//so the ones that are in rooms but not in sids are the rooms the socket was in.
 	rooms.emit('disconnect', data);
 };
 
@@ -73,7 +79,7 @@ var joinHandler = function(socket, data) {
 
 	newuserData.users = acceptanceData.users = getRoomUsers(roomName);
 
-	console.log('socket join event ('+data.role+') id:'+data.id);
+	//console.log('socket join event ('+data.role+') id:'+data.id);
 
 	//send message to newly accepted user
 	socket.emit('accepted', acceptanceData);
@@ -110,7 +116,7 @@ var createServer = function() {
 			disconnectHandler(socket);
 		});
 
-		socket.on('enter', function(data) {
+		socket.on('join', function(data) {
 			joinHandler(socket, data);
 		});
 
