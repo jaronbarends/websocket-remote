@@ -8,7 +8,8 @@
 	//window.io is defined by socket.IO.
 	//It represents the socket server.
 	//io is a bit of a strange name, but it's being used in examples everywhere,
-	//so let's stick to it.
+	//so let's stick to that.
+
 
 	// define semi-global variables (vars that are "global" in this file's scope) and prefix them
 	// with sg so we can easily distinguish them from "normal" vars
@@ -81,6 +82,8 @@
 		if (data.role === 'remote') {
 			createDevice(data);
 		}
+		console.log('new user. number of users:');
+		//console.log(data);
 	};
 
 
@@ -92,6 +95,7 @@
 	var disconnectHandler = function(data) {
 		var id = data.id;
 		removeDevice(id);
+		console.log('disconnect', data);
 	};
 	
 

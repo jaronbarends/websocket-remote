@@ -8,7 +8,8 @@ var express,
 	app,
 	port,
 	io,
-	room;
+	rooms,
+	roomName = 'defaultRoom';//we're only supporting one room for now
 
 
 /**
@@ -34,27 +35,45 @@ var initBasicRequirements = function() {
 
 
 /**
-* handle user disconnecting
+* get all users in the room
+* @returns {array} Associative array containing all user id's in the room
+*/
+var getRoomUsers = function() {
+	var users = io.sockets.adapter.rooms[roomName];
+
+	return users;
+};
+
+
+
+/**
+* handle user disconnecting (closing browser window)
 * @returns {undefined}
 */
 var disconnectHandler = function(socket) {
-	console.log('user '+socket.id+' disconnected');
+	console.log('\n-------------------------------------------');
+	console.log('user '+socket.id+' disconnected\n');
 	var data = {
-		id: socket.id
+		id: socket.id,
+		users: getRoomUsers()
 	};
-	room.emit('disconnect', data);
+	rooms.emit('disconnect', data);
 };
 
 
 /**
-* handle new user entering the room
+* handle new user joining the room
 * @returns {undefined}
 */
-var enterHandler = function(socket, data) {
+var joinHandler = function(socket, data) {
 	var newuserData = data,
 		acceptanceData = {};
 
-	console.log('socket enter event ('+data.role+') id:'+data.id);
+	socket.join(roomName);
+
+	newuserData.users = acceptanceData.users = getRoomUsers(roomName);
+
+	console.log('socket join event ('+data.role+') id:'+data.id);
 
 	//send message to newly accepted user
 	socket.emit('accepted', acceptanceData);
@@ -72,26 +91,17 @@ var enterHandler = function(socket, data) {
 */
 var passThroughHandler = function(data) {
 	if (data.eventName && data.eventData) {
-		room.emit(data.eventName, data.eventData);
+		rooms.emit(data.eventName, data.eventData);
 	}
 };
 
 
 /**
-* handle device tilt change
+* create the server where all sockets can be handled
 * @returns {undefined}
 */
-var tiltchangeHandler = function(data) {
-	room.emit('tiltchange', data);
-};
-
-
-/**
-* create a "room" where all sockets can meet up
-* @returns {undefined}
-*/
-var createRoom = function() {
-	room = io.on('connection', function (socket) {
+var createServer = function() {
+	rooms = io.on('connection', function (socket) {
 
 		// A new client has come online. 
 		socket.emit('connectionready');
@@ -101,7 +111,7 @@ var createRoom = function() {
 		});
 
 		socket.on('enter', function(data) {
-			enterHandler(socket, data);
+			joinHandler(socket, data);
 		});
 
 		//set handler for events that only have to be passsed on to all sockets
@@ -117,7 +127,7 @@ var createRoom = function() {
 */
 var init = function() {
 	initBasicRequirements();
-	createRoom();
+	createServer();
 	console.log('Now running on http://localhost:' + port);
 };
 
