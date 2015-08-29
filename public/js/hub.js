@@ -2,10 +2,17 @@
 
 	'use strict';
 
+	/* global io */ //instruction for jshint
+
+	//globals:
+	//window.io is defined by socket.IO.
+	//It represents the socket server.
+	//io is a bit of a strange name, but it's being used in examples everywhere,
+	//so let's stick to it.
+
 	// define semi-global variables (vars that are "global" in this file's scope) and prefix them
 	// with sg so we can easily distinguish them from "normal" vars
-	var sgSocket,
-		sgRole = 'hub',
+	var sgRole = 'hub',
 		$sgOrientationTable = $('#orientation-table'),
 		sgDeviceIdPrefix = 'device-',//prefix used for device elements' ids
 		$sgDevices = $('#devices-container');
@@ -16,7 +23,7 @@
 	* @returns {undefined}
 	*/
 	var initIdentifier = function() {
-		$('#id-box').find('.user-id').text(sgSocket.id);
+		$('#id-box').find('.user-id').text(io.id);
 	};
 
 
@@ -151,10 +158,10 @@
 	* @returns {undefined}
 	*/
 	var initSocketListeners = function() {
-		sgSocket.on('accepted', acceptedHandler);
-		sgSocket.on('newuser', newUserHandler);
-		sgSocket.on('disconnect', disconnectHandler);
-		sgSocket.on('tiltchange', tiltChangeHandler);
+		io.on('accepted', acceptedHandler);
+		io.on('newuser', newUserHandler);
+		io.on('disconnect', disconnectHandler);
+		io.on('tiltchange', tiltChangeHandler);
 	};
 
 
@@ -165,11 +172,11 @@
 	var enterRoom = function() {
 		var data = {
 				role: sgRole,
-				id: sgSocket.id,
+				id: io.id,
 			};
 
 		//tell socket we want to enter the session
-		sgSocket.emit('enter', data);
+		io.emit('enter', data);
 	};
 		
 	
@@ -191,9 +198,8 @@
 	* @param {Socket} socket This client's socket
 	* @returns {undefined}
 	*/
-	var socketReadyHandler = function(e, socket) {
-		if (socket) {
-			sgSocket = socket;
+	var connectionReadyHandler = function(e, io) {
+		if (io) {
 			initHub();
 		}
 	};
@@ -202,11 +208,11 @@
 	/**
 
 	* initialize the app
-	* (or rather: set a listener for the socket to be ready, the handler will initialize the app)
+	* (or rather: set a listener for the socket connection to be ready, the handler will initialize the app)
 	* @returns {undefined}
 	*/
 	var init = function() {
-		$(document).on('connectionready.socket', socketReadyHandler);
+		$(document).on('connectionready.socket', connectionReadyHandler);
 	};
 
 	$(document).ready(init);

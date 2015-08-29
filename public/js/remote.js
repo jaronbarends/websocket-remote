@@ -2,10 +2,18 @@
 
 	'use strict';
 
+	/* global io */ //instruction for jshint
+
+	//globals:
+	//window.io is defined by socket.IO.
+	//It represents the socket server.
+	//io is a bit of a strange name, but it's being used in examples everywhere,
+	//so let's stick to that.
+
+
 	// define semi-global variables (vars that are "global" in this file's scope) and prefix them
 	// with sg so we can easily distinguish them from "normal" vars
-	var sgSocket,
-		sgUsername = '',
+	var sgUsername = '',
 		sgRole = 'remote',
 		sgUserColor,
 		sgOrientation = {},
@@ -18,7 +26,7 @@
 	* @returns {undefined}
 	*/
 	var initIdentifier = function() {
-		$('#id-box').find('.user-id').text(sgSocket.id);
+		$('#id-box').find('.user-id').text(io.id);
 	};
 
 
@@ -59,9 +67,9 @@
 	* @returns {undefined}
 	*/
 	var initSocketListeners = function() {
-		sgSocket.on('accepted', acceptedHandler);
-		sgSocket.on('newuser', newUserHandler);
-		sgSocket.on('disconnect', userDisconnectHandler);
+		io.on('accepted', acceptedHandler);
+		io.on('newuser', newUserHandler);
+		io.on('disconnect', userDisconnectHandler);
 	};
 
 
@@ -72,12 +80,12 @@
 	var enterRoom = function() {
 		var data = {
 				role: sgRole,
-				id: sgSocket.id,
+				id: io.id,
 				username: sgUsername,
 				color: sgUserColor
 			};
 
-		sgSocket.emit('enter', data);
+		io.emit('enter', data);
 	};
 
 
@@ -104,7 +112,7 @@
 			eventName: eventName,
 			eventData: eventData
 		};
-		sgSocket.emit('passthrough', data);
+		io.emit('passthrough', data);
 	};
 
 
@@ -130,7 +138,7 @@
 			};
 
 			var newData = {
-				id: sgSocket.id,
+				id: io.id,
 				orientation: sgOrientation
 			};
 			emitEvent('tiltchange', newData);
@@ -200,7 +208,7 @@
 	*/
 	var initRemote = function() {
 		initIdentifier();
-		sgUsername = sgSocket.id;
+		sgUsername = io.id;
 		setUserColor();
 		initSocketListeners();
 		initDeviceOrientation();
@@ -211,14 +219,13 @@
 
 
 	/**
-	* kick off the app once the socket is ready
+	* kick off the app once the socket connection is ready
 	* @param {event} e The ready.socket event sent by socket js
 	* @param {Socket} socket This client's socket
 	* @returns {undefined}
 	*/
-	var socketReadyHandler = function(e, socket) {
-		if (socket) {
-			sgSocket = socket;
+	var connectionReadyHandler = function(e, io) {
+		if (io) {
 			initRemote();
 		}
 	};
@@ -230,7 +237,7 @@
 	* @returns {undefined}
 	*/
 	var init = function() {
-		$(document).on('connectionready.socket', socketReadyHandler);
+		$(document).on('connectionready.socket', connectionReadyHandler);
 	};
 
 	$(document).ready(init);
