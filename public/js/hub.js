@@ -100,9 +100,12 @@
 	* @returns {undefined}
 	*/
 	var disconnectHandler = function(data) {
-		var id = data.id;
-		removeDevice(id);
 		//console.log('disconnect', data);
+		if (data.removedUser) {
+			//there is no removed user when a client disconnects that hadn't joined the room yet
+			var removedUserId = data.removedUser.id;
+			removeDevice(removedUserId);
+		}
 	};
 	
 

@@ -46,6 +46,23 @@ var getRoomUsers = function() {
 };
 
 
+/**
+* remove a user from the users array
+* @returns {object} The removed user's user object
+*/
+var removeUser = function(id) {
+	var removedUser;
+	for (var i=0, len=users.length; i<len; i++) {
+		if (users[i].id === id) {
+			removedUser = users.splice(i,1)[0];//splice returns array, so take element 0 of that
+			break;
+		}
+	}
+	return removedUser;
+};
+
+
+
 
 /**
 * handle user disconnecting (closing browser window)
@@ -54,10 +71,12 @@ var getRoomUsers = function() {
 var disconnectHandler = function(socket) {
 	console.log('\n-------------------------------------------');
 	console.log('user '+socket.id+' disconnected\n');
+
+	removedUser = removeUser(socket.id);
 	//console.log(socket.adapter);
 	var data = {
-		id: socket.id,
-		users: getRoomUsers()
+		removedUser: removedUser,
+		users: users
 	};
 
 	//io.sockets.adapter contains to objects: rooms and sids which are similar

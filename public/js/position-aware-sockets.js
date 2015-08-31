@@ -52,7 +52,12 @@
 			sgUser.isHub = true;
 			console.log('you are the first to join');
 		} else {
-			console.log('you just joined the room with');
+			var usernames = [];
+			for (var i=0, len=users.length-1; i<len; i++) {
+			 	usernames.push(users[i].username);
+			}
+			usernames = usernames.join(', ');
+			console.log('you just joined the room with ',usernames);
 		}
 
 		console.log('number of users:', sgUsers.length);
@@ -96,8 +101,7 @@
 	* send event to server to request entry to room
 	* @returns {undefined}
 	*/
-	var joinRoom = function() {;
-
+	var joinRoom = function() {
 		io.emit('join', sgUser);
 	};
 
@@ -234,6 +238,7 @@
 	*/
 	var initRemote = function() {
 		initIdentifier();
+		sgUser.id = io.id;
 		sgUser.username = io.id;
 		setUserName();
 		setUserColor();
