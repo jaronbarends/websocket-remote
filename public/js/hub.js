@@ -17,7 +17,7 @@
 		$sgOrientationTable = $('#orientation-table'),
 		sgDeviceIdPrefix = 'device-',//prefix used for device elements' ids
 		$sgDevices = $('#devices-container'),
-		sgUserIds = [];//array of userId's, in order of joining
+		sgUsers = [];//array of users, in order of joining
 
 	
 	/**
@@ -30,12 +30,12 @@
 
 
 	/**
-	* handle socket's acceptance of entry request
+	* handle socket's acceptance of join request
 	* @param {object} data Data sent by the socket (currently empty)
 	* @returns {undefined}
 	*/
-	var acceptedHandler = function(data) {
-		//this hub has been accepted into the room
+	var joinedHandler = function(data) {
+		//this hub has been joined the room
 	};
 
 
@@ -75,17 +75,21 @@
 
 	/**
 	* handle entry of new user in the room
-	* @param {object} data Info about the joining user
+	* @param {object} users Updated array with users; the newly added user is the last one in the array
 	* @returns {undefined}
 	*/
-	var newUserHandler = function(data) {
+	var newUserHandler = function(users) {
 		//console.log('new user has joined: '+data.id+' ('+data.role+')');
-		if (data.role === 'remote') {
-			createDevice(data);
+		var newUser = users[users.length-1];
+
+		sgUsers = users;
+		// console.log(users);
+		// console.log(newUser);
+		if (newUser.role === 'remote') {
+			createDevice(newUser);
 		}
 		//data.users is object; transform to array
-		sgUserIds = Object.keys(data.users);
-		console.log('new user. number of users:'+sgUserIds.length);
+		console.log('new user. number of users:'+sgUsers.length);
 		//console.log(data);
 	};
 
@@ -165,7 +169,7 @@
 	* @returns {undefined}
 	*/
 	var initSocketListeners = function() {
-		io.on('accepted', acceptedHandler);
+		io.on('joined', joinedHandler);
 		io.on('newuser', newUserHandler);
 		io.on('disconnect', disconnectHandler);
 		io.on('tiltchange', tiltChangeHandler);

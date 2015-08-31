@@ -18,7 +18,8 @@
 		sgUserColor,
 		sgOrientation = {},
 		sgCompassCorrection = 0,
-		sgScreenAngle;
+		sgScreenAngle,
+		sgUsers = [];//array of users, in order of joining
 
 	
 	/**
@@ -35,18 +36,18 @@
 	* @param {object} data Data sent by the socket (currently empty)
 	* @returns {undefined}
 	*/
-	var acceptedHandler = function(data) {
-		//this remote has been accepted into the room
+	var joinedHandler = function(data) {
+		//this remote has been joined the room
 		$('#login-form').hide();
 	};
 
 
 	/**
 	* handle entry of new user in the room
-	* @param {object} data Info about the joining user
+	* @param {object} users Updated array with users; the newly added user is the last one in the array
 	* @returns {undefined}
 	*/
-	var newUserHandler = function(data) {
+	var newUserHandler = function(users) {
 		//console.log('new user has joined: '+data.id+' ('+data.role+')');
 	};
 
@@ -67,7 +68,7 @@
 	* @returns {undefined}
 	*/
 	var initSocketListeners = function() {
-		io.on('accepted', acceptedHandler);
+		io.on('joined', joinedHandler);
 		io.on('newuser', newUserHandler);
 		io.on('disconnect', userDisconnectHandler);
 	};

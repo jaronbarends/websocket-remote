@@ -9,7 +9,8 @@ var express,
 	port,
 	io,
 	rooms,
-	roomName = 'defaultRoom';//we're only supporting one room for now
+	roomName = 'defaultRoom',//we're only supporting one room for now
+	users = [];
 
 
 /**
@@ -23,7 +24,7 @@ var initBasicRequirements = function() {
 	app = express();
 
 	//set port that we'll use
-	port = process.env.PORT || 8000;// This is needed if the app is run on heroku and other cloud providers:
+	port = process.env.PORT || 3000;// This is needed if the app is run on heroku and other cloud providers:
 
 	// Initialize a new socket.io object. It is bound to 
 	// the express app, which allows them to coexist.
@@ -53,7 +54,7 @@ var getRoomUsers = function() {
 var disconnectHandler = function(socket) {
 	console.log('\n-------------------------------------------');
 	console.log('user '+socket.id+' disconnected\n');
-	console.log(socket.adapter);
+	//console.log(socket.adapter);
 	var data = {
 		id: socket.id,
 		users: getRoomUsers()
@@ -73,19 +74,22 @@ var disconnectHandler = function(socket) {
 */
 var joinHandler = function(socket, data) {
 	var newuserData = data,
-		acceptanceData = {};
+		joinData = {};
 
 	socket.join(roomName);
 
-	newuserData.users = acceptanceData.users = getRoomUsers(roomName);
+	//add the new user's data to the users array
+	users.push(data);
+
+	newuserData.users = joinData.users = getRoomUsers(roomName);
 
 	//console.log('socket join event ('+data.role+') id:'+data.id);
 
-	//send message to newly accepted user
-	socket.emit('accepted', acceptanceData);
+	//send message to newly joined user
+	socket.emit('joined', users);
 
 	//send message to rest of the room
-	socket.broadcast.emit('newuser', newuserData);
+	socket.broadcast.emit('newuser', users);
 };
 
 
