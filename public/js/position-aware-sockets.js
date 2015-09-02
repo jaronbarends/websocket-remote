@@ -18,6 +18,10 @@
 			username: '',
 			role: 'remote',
 			color: '',
+			idx: 0,//the index of this user in the users array
+			hasJoined: false,
+			calibrations: 0,//number of calibrations this user has made
+			hasKnownPosition: false,
 			isHub: false//flag indicating if this device is the room's central hub / point of reference
 		},
 		sgDevice = {
@@ -25,9 +29,23 @@
 			isCalibrated: false,
 			compassCorrection: 0
 		},
-		sgUsers = [];//array of users, in order of joining
+		sgUsers = [],//array of users, in order of joining
+		sgCalibratedUsers = [],
+		sgDirections = [];//array of directions to users
+
+	var $sgCalibrationBox = $('#calibration-box');
 
 	
+
+	/**
+	* log to screen
+	* @returns {undefined}
+	*/
+	var log = function(msg) {
+		$('#logwin').html(msg);
+	};
+	
+
 	/**
 	* add identifier for this user
 	* @returns {undefined}
@@ -36,73 +54,12 @@
 		$('#id-box').find('.user-id').text(io.id);
 	};
 
-
 	/**
-	* handle socket's acceptance of entry request
-	* @param {object} data Data sent by the socket (currently empty)
-	* @returns {undefined}
+	* return the latest user in the users array
+	* @returns {object} The user object of the latest user who joined
 	*/
-	var joinedHandler = function(users) {
-		//this remote has been joined the room
-		$('#login-form').hide();
-		sgUsers = users;
-
-		if (sgUsers.length === 1) {
-			//this is the first device
-			sgUser.isHub = true;
-			console.log('you are the first to join');
-		} else {
-			var usernames = [];
-			for (var i=0, len=users.length-1; i<len; i++) {
-			 	usernames.push(users[i].username);
-			}
-			usernames = usernames.join(', ');
-			console.log('you just joined the room with ',usernames);
-		}
-
-		console.log('number of users:', sgUsers.length);
-	};
-
-
-	/**
-	* handle entry of new user in the room
-	* @param {object} data Info about the joining user
-	* @returns {undefined}
-	*/
-	var newUserHandler = function(users) {
-		var newUser = users[users.length-1];
-		console.log('new user '+newUser.username+' has just joined');
-	};
-
-
-	/**
-	* handle user disconnecting 
-	* @returns {undefined}
-	*/
-	var userDisconnectHandler = function() {
-		
-	};
-	
-
-
-	/**
-	* add event listeners for so cket
-	* @param {string} varname Description
-	* @returns {undefined}
-	*/
-	var initSocketListeners = function() {
-		io.on('joined', joinedHandler);
-		io.on('newuser', newUserHandler);
-		io.on('disconnect', userDisconnectHandler);
-	};
-
-
-	/**
-	* send event to server to request entry to room
-	* @returns {undefined}
-	*/
-	var joinRoom = function() {
-		io.emit('join', sgUser);
+	var getLatestUser = function() {
+		return sgUsers[sgUsers.length-1];
 	};
 
 
@@ -118,19 +75,37 @@
 	};
 	
 
-
 	/**
 	* set an identifying color for this user
 	* @returns {undefined}
 	*/
 	var setUserColor = function() {
-		var colors = ['AliceBlue', 'AntiqueWhite', 'Aqua', 'Aquamarine', 'Azure', 'Beige', 'Bisque', 'Black', 'BlanchedAlmond', 'Blue', 'BlueViolet', 'Brown', 'BurlyWood', 'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Cornsilk', 'Crimson', 'Cyan', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray', 'DarkGreen', 'DarkKhaki', 'DarkMagenta', 'DarkOliveGreen', 'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 'DarkSlateBlue', 'DarkSlateGray', 'DarkTurquoise', 'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DodgerBlue', 'FireBrick', 'FloralWhite', 'ForestGreen', 'Fuchsia', 'Gainsboro', 'GhostWhite', 'Gold', 'GoldenRod', 'Gray', 'Green', 'GreenYellow', 'HoneyDew', 'HotPink', 'IndianRed ', 'Indigo ', 'Ivory', 'Khaki', 'Lavender', 'LavenderBlush', 'LawnGreen', 'LemonChiffon', 'LightBlue', 'LightCoral', 'LightCyan', 'LightGoldenRodYellow', 'LightGray', 'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSteelBlue', 'LightYellow', 'Lime', 'LimeGreen', 'Linen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumSpringGreen', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 'MintCream', 'MistyRose', 'Moccasin', 'NavajoWhite', 'Navy', 'OldLace', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleGoldenRod', 'PaleGreen', 'PaleTurquoise', 'PaleVioletRed', 'PapayaWhip', 'PeachPuff', 'Peru', 'Pink', 'Plum', 'PowderBlue', 'Purple', 'RebeccaPurple', 'Red', 'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 'SeaShell', 'Sienna', 'Silver', 'SkyBlue', 'SlateBlue', 'SlateGray', 'Snow', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Thistle', 'Tomato', 'Turquoise', 'Violet', 'Wheat', 'White', 'WhiteSmoke', 'Yellow', 'YellowGreen'],
+		var colors = ['Aqua', 'Aquamarine', 'Black', 'Blue', 'BlueViolet', 'Brown', 'CadetBlue', 'Chartreuse', 'Chocolate', 'Coral', 'CornflowerBlue', 'Crimson', 'DarkBlue', 'DarkCyan', 'DarkGoldenRod', 'DarkGray', 'DarkGreen', 'DarkMagenta', 'DarkOliveGreen', 'DarkOrange', 'DarkOrchid', 'DarkRed', 'DarkSalmon', 'DarkSeaGreen', 'DarkSlateBlue', 'DarkSlateGray', 'DarkTurquoise', 'DarkViolet', 'DeepPink', 'DeepSkyBlue', 'DimGray', 'DodgerBlue', 'FireBrick', 'ForestGreen', 'Fuchsia', 'Gold', 'GoldenRod', 'Gray', 'Green', 'GreenYellow', 'HotPink', 'IndianRed ', 'Indigo ', 'LawnGreen', 'LightBlue', 'LightCoral', 'LightGreen', 'LightPink', 'LightSalmon', 'LightSeaGreen', 'LightSkyBlue', 'LightSlateGray', 'LightSteelBlue', 'Lime', 'LimeGreen', 'Magenta', 'Maroon', 'MediumAquaMarine', 'MediumBlue', 'MediumOrchid', 'MediumPurple', 'MediumSeaGreen', 'MediumSlateBlue', 'MediumTurquoise', 'MediumVioletRed', 'MidnightBlue', 'Navy', 'Olive', 'OliveDrab', 'Orange', 'OrangeRed', 'Orchid', 'PaleVioletRed', 'Peru', 'Pink', 'Plum', 'Purple', 'RebeccaPurple', 'Red', 'RosyBrown', 'RoyalBlue', 'SaddleBrown', 'Salmon', 'SandyBrown', 'SeaGreen', 'Sienna', 'SkyBlue', 'SlateBlue', 'SlateGray', 'SpringGreen', 'SteelBlue', 'Tan', 'Teal', 'Tomato', 'Turquoise', 'Violet', 'Yellow', 'YellowGreen'],
 		len = colors.length;
 
 		sgUser.color = colors[Math.floor(len*Math.random())];
 
 		$('.user-color').css('background', sgUser.color);
 	};
+
+
+
+	/**
+	* change a property of the current user and send changed users object to sockets
+	* @returns {undefined}
+	*/
+	var updateUserAndEmit = function(prop, val) {
+		sgUser[prop] = val;
+		for (var i=0, len=sgUsers.length; i<len; i++) {
+			var currUser = sgUsers[i];
+			if (currUser.id === sgUser.id) {
+				sgUsers[i] = sgUser;
+				break;
+			}
+		}
+		emitEvent('updateusers', sgUsers);
+	};
+	
 
 
 	/**
@@ -207,29 +182,219 @@
 			joinRoom();
 		});
 	};
+	
+
+	/**
+	* handle socket's acceptance of entry request
+	* @param {object} users All users currently in the room
+	* @returns {undefined}
+	*/
+	var joinedHandler = function(users) {
+		//this remote has been joined the room
+		$('#login-form').hide();
+		sgUsers = users;
+
+		var idx = sgUsers.length-1;
+		sgUser.idx = idx;
+
+		if (idx === 0) {
+			//this is the first device
+			sgUser.isHub = true;
+			//console.log('you are the first to join');
+		} else {
+			var usernames = [];
+			for (var i=0, len=users.length-1; i<len; i++) {
+			 	usernames.push(users[i].username);
+			}
+			usernames = usernames.join(', ');
+			//console.log('you just joined the room with ',usernames);
+			//showCalibration();
+		}
+
+		//setup listener for calibration events, so we know when it's this user's turn
+		io.on('calibrationupdate.positionawaresockets', calibrationupdateHandler);
+
+		//console.log('number of users:', sgUsers.length);
+	};
 
 
 	/**
-	* handle clicking callibration button
+	* handle entry of new user in the room
+	* @param {object} data Info about the joining user
 	* @returns {undefined}
 	*/
-	var callibrationHandler = function(e) {
+	var newUserHandler = function(users) {
+		sgUsers = users;
+
+		var newUser = getLatestUser();
+		//console.log('new user '+newUser.username+' has just joined');
+		//The first who joins only has to do calibration when the 2nd user joins
+		//The 2nd has to calibrate with nr1 on his own joined-event and with nr3's newUser event
+		//The rest has to do the calibration with their 2 predecessors on their on joined event
+		if (sgUser.isHub && !sgUser.hasKnownPosition) {
+			showCalibration();
+		} else {
+			//if hub hasKnownPosition && this === 2nd showCal()
+		}
+	};
+
+
+	/**
+	* handle user disconnecting 
+	* @returns {undefined}
+	*/
+	var userDisconnectHandler = function() {
+		
+	};
+	
+
+
+	/**
+	* add event listeners for socket
+	* @param {string} varname Description
+	* @returns {undefined}
+	*/
+	var initSocketListeners = function() {
+		io.on('joined', joinedHandler);
+		io.on('newuser', newUserHandler);
+		io.on('disconnect', userDisconnectHandler);
+		io.on('updateusers', function(users) {sgUsers = users;});
+	};
+
+
+	/**
+	* send event to server to request entry to room
+	* @returns {undefined}
+	*/
+	var joinRoom = function() {
+		io.emit('join', sgUser);
+	};
+
+
+	/**
+	* show the calibration box
+	* @returns {undefined}
+	*/
+	var showCalibration = function() {
+		var idx = sgUser.idx,
+			calibs = sgUser.calibrations,
+			otherUser,
+			otherIdx;
+
+		//determine which user to point to
+		if (idx === 0) {
+			otherIdx = 1;
+		} else if (idx === 1) {
+			if (calibs === 0) {
+				otherIdx = 0;
+			} else {
+				otherIdx = 2;
+			}
+		} else {
+			//if calibrations === 0 we have to calibrate with idx -1
+			//if calibrations === 1 we have to calibrate with idx -2
+			otherIdx = idx-calibs-1;
+		}
+		otherUser = sgUsers[otherIdx];
+
+		//show calibration box if the other user has already joined (this may not be the case with only 2 users)
+		if (otherUser) {
+			$sgCalibrationBox.find('.calibrate-user-name')
+					.text(otherUser.username)
+				.end()
+				.find('input[name="calibrate-user-id"]')
+					.val(otherUser.id)
+				.end()
+				.show();
+		}
+	};//showCalibration
+
+
+	/**
+	* a calibration has been added or removed
+	* @returns {undefined}
+	*/
+	var calibrationupdateHandler = function(directions) {
+		sgDirections = directions;
+
+		//check if there is another user who has to calibrate
+		var done = true;
+		//console.log(sgUsers);
+		for (var i=0, len=sgUsers.length; i<len; i++) {
+			var user = sgUsers[i];
+			//console.log(user);
+			//console.log(user.hasKnownPosition);
+			if (user.hasKnownPosition) {
+				//continue
+				if (user.id === sgUser.id) {console.log('my position is known')}
+			} else {
+				//this is the first joining user that hasn't calibrated yet
+				done = false;
+				if (user.id === sgUser.id) {
+					console.log('my position isnt known');
+					//then this user has to calibrate
+					showCalibration();
+				}
+				break;
+			}
+		}
+
+		if (done) {
+			//hide message that not everyone is ready
+		}
+	};
+
+
+	/**
+	* handle clicking calibration button
+	* @returns {undefined}
+	*/
+	var calibrationHandler = function(e) {
 		e.preventDefault();
-		console.log('handler');
+		$sgCalibrationBox.hide();
+
+		//store current direction and id of other user
 		sgDevice.compassCorrection = sgDevice.orientation.dir;
+		var dir = sgDevice.orientation.dir,
+			otherUserId = $(e.currentTarget).find('[name="calibrate-user-id"]').val(),
+			dirObject = {
+				fromId: sgUser.id,
+				toId: otherUserId,
+				dir: dir
+			};
+		log('dir:'+sgDevice.orientation.dir+'<br>'+otherUserId);
+		sgDirections.push(dirObject);
+
+		//update number of calibrations and see if we're done
+		sgUser.calibrations++;
+
+		if (sgUser.idx === 0) {
+			//then we only have to calibrate with one user, so we're done
+			updateUserAndEmit('hasKnownPosition', true);
+			console.log('I\'m idx0; I am done');
+		} else if (sgUser.idx === 1 && sgUser.calibrations === 1 && sgUsers.length === 2) {
+			//then we only have idx0 and idx1
+			//we could start interacting with idx0
+			//but we're not done until idx2 joins and we calibrate with idx2
+			console.log('Im idx1; I am done for now, but need more');
+		} else if (sgUser.calibrations === 2) {
+			//then we're done
+			updateUserAndEmit('hasKnownPosition', true);
+		}
+
+		//send the updated directions object to the other sockets
+		emitEvent('calibrationupdate.positionawaresockets', sgDirections);
+
 	};
-	
 
 
 	/**
-	* initialize the callibration form
+	* initialize the calibration form
 	* @returns {undefined}
 	*/
-	var initCallibrationForm = function() {
-		$('#callibration-form').on('submit', callibrationHandler);
+	var initCalibrationForm = function() {
+		$('#calibration-form').on('submit', calibrationHandler);
 	};
-	
-	
 
 
 	/**
@@ -245,7 +410,7 @@
 		initSocketListeners();
 		initDeviceOrientation();
 		initLoginForm();
-		initCallibrationForm();
+		initCalibrationForm();
 		//joinRoom();
 	};
 

@@ -181,10 +181,10 @@
 
 
 	/**
-	* handle clicking callibration button
+	* handle clicking calibration button
 	* @returns {undefined}
 	*/
-	var callibrationHandler = function(e) {
+	var calibrationHandler = function(e) {
 		e.preventDefault();
 		console.log('handler');
 		sgCompassCorrection = sgOrientation.dir;
@@ -193,11 +193,11 @@
 
 
 	/**
-	* initialize the callibration form
+	* initialize the calibration form
 	* @returns {undefined}
 	*/
-	var initCallibrationForm = function() {
-		$('#callibration-form').on('submit', callibrationHandler);
+	var initCalibrationForm = function() {
+		$('#calibration-form').on('submit', calibrationHandler);
 	};
 	
 	
@@ -214,7 +214,7 @@
 		initSocketListeners();
 		initDeviceOrientation();
 		initLoginForm();
-		initCallibrationForm();
+		initCalibrationForm();
 		//joinRoom();
 	};
 

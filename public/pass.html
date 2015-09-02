@@ -14,6 +14,7 @@
 
 	<link type="text/css" rel="stylesheet" href="css/shared.css" />
 	<link type="text/css" rel="stylesheet" href="css/pass.css" />
+	<link type="text/css" rel="stylesheet" href="css/user-map.css" />
 
 </head>
 
@@ -22,24 +23,47 @@
 
 	<div class="content-width">
 
+		<div id="logwin"></div>
+
 		<div id="id-box" class="id-box">
 			user id: <span class="user-id"></span>
 		</div>
 
-		<form id="login-form" action="">
-			<input type="text" name="username" value="" placeholder="Your name (please)">
-			<input type="submit" value="Go">
-		</form>
-
-		<div id="callibration-form">
-			<h2>Hold your device perpendicular to the main screen</h2>
-			<form id="callibration-form" action="">
-				<input type="submit" value="It's perpendicular now">
-			</form>
+		<div id="user-map-container" class="user-map-container">
+			<div id="user-map" class="user-map">
+				<div id="user--you" class="user user--unjoined user--you">
+					<div class="avatar"></div>
+				</div>
+			</div>
 		</div>
+
+		<div id="instruction-box" class="instruction-box">
+
+			<form id="login-form" action="">
+				<input type="text" name="username" value="" placeholder="Your name (please)">
+				<input type="submit" value="Go">
+			</form>
+
+			<div id="calibration-box" class="u-hidden">
+				<h2>point your device at <span class="calibrate-user-name">...</span></h2>
+				<form id="calibration-form" action="">
+					<input type="hidden" name="calibrate-user-id">
+					<input type="submit" value="Pointing at them now">
+				</form>
+			</div>
+
+		</div><!-- /.instruction-box -->
 
 
 	</div><!-- /.content-width -->
+
+	<div id="clone-src" class="u-hidden">
+
+		<div class="user user--has-unknown-position">
+			<div class="avatar"><span class="initial"></span></div>
+		</div>
+
+	</div><!-- /#clone-src -->
 
 
 	<!-- Including the JS libraries that we use -->
@@ -50,6 +74,7 @@
 
 	<!-- Main JavaScript file -->
 	<script src="js/position-aware-sockets.js"></script>
+	<script src="js/user-map.js"></script>
 
 
 	<script src="js/socket.js"></script>

@@ -13,7 +13,6 @@
 	* @returns {undefined}
 	*/
 	var connectionreadyHandler = function() {
-		console.log('socket.js - connection ready');
 		$(document).trigger('connectionready.socket', io);
 	};
 	

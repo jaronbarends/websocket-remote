@@ -119,7 +119,6 @@
 		var orientation = data.orientation;
 
 		var dirCorrection = 0;//direction is determined by the devices angle relative to the screen at the time of connecting
-			//TODO: has to be callibrated by pointing to screen
 
 		orientation.tiltFB -= 90;//tiltFB = 0 when remote device is horizontal, we want it to correspond with vertical screen
 		orientation.dir += dirCorrection;
