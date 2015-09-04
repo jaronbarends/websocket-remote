@@ -36,17 +36,6 @@ var initBasicRequirements = function() {
 
 
 /**
-* get all users in the room
-* @returns {object} Object containing all user id's in the room
-*/
-var getRoomUsers = function() {
-	var users = io.sockets.adapter.rooms[roomName];
-
-	return users;
-};
-
-
-/**
 * remove a user from the users array
 * @returns {object} The removed user's user object
 */
@@ -66,6 +55,7 @@ var removeUser = function(id) {
 
 /**
 * handle user disconnecting (closing browser window)
+* @param {socket object} socket The disconnecting socket
 * @returns {undefined}
 */
 var disconnectHandler = function(socket) {
@@ -89,20 +79,15 @@ var disconnectHandler = function(socket) {
 
 /**
 * handle new user joining the room
+* @param {socket object} socket The socket requesting to join
+* @param {object} user Object containing data about the user
 * @returns {undefined}
 */
-var joinHandler = function(socket, data) {
-	var newuserData = data,
-		joinData = {};
-
+var joinHandler = function(socket, user) {
 	socket.join(roomName);
 
 	//add the new user's data to the users array
-	users.push(data);
-
-	newuserData.users = joinData.users = getRoomUsers(roomName);
-
-	//console.log('socket join event ('+data.role+') id:'+data.id);
+	users.push(user);
 
 	//send message to newly joined user
 	socket.emit('joined', users);
@@ -113,13 +98,27 @@ var joinHandler = function(socket, data) {
 
 
 /**
+* when something about a user changes, that client updates the users array
+* store the updated array and pass the event on to the room
+* @param {socket object} socket The socket requesting to join
+* @param {object} data Object containing updated users array and the updated user {users, changedUser}
+* @returns {undefined}
+*/
+var updateusersHandler = function(socket, data) {
+	users = data.users;
+	rooms.emit('updateusers', data);
+};
+
+
+
+/**
 * handle event that just has to be passed through to all sockets
 * this way, we don't have to listen for and handle specific events separately
-* @param {object} data Object containing {string} eventName and {object} eventData
+* @param {object} data Object containing {string} eventName and [optional {object} eventData]
 * @returns {undefined}
 */
 var passThroughHandler = function(data) {
-	if (data.eventName && data.eventData) {
+	if (data.eventName) {
 		rooms.emit(data.eventName, data.eventData);
 	}
 };
@@ -141,6 +140,10 @@ var createServer = function() {
 
 		socket.on('join', function(data) {
 			joinHandler(socket, data);
+		});
+
+		socket.on('updateusers', function(data) {
+			updateusersHandler(socket, data);
 		});
 
 		//set handler for events that only have to be passsed on to all sockets

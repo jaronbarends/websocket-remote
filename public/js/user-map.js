@@ -81,7 +81,7 @@
 	var newUserHandler = function(users) {
 		sgUsers = users;
 		var newUser = getLatestUser();
-		console.log('new user '+newUser.username+' has just joined');
+		//console.log('new user '+newUser.username+' has just joined');
 		createUser(newUser);
 	};
 

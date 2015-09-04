@@ -4,6 +4,8 @@
 	border: 2px solid #eee;
 	width: 20em;
 	height: 20em;
+	width: 10em;
+	height: 10em;
 }
 
 .user-map {
@@ -27,6 +29,7 @@
 
 .user--has-unknown-position {
 	position: relative;
+	float: left;
 	left: 0;
 	top: -3em;
 	bottom: auto;

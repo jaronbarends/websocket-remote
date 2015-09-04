@@ -21,17 +21,20 @@
 			idx: 0,//the index of this user in the users array
 			hasJoined: false,
 			calibrations: 0,//number of calibrations this user has made
-			hasKnownPosition: false,
-			isHub: false//flag indicating if this device is the room's central hub / point of reference
+			hasCalibrated: false,
+			isHub: false,//flag indicating if this device is the room's central hub / point of reference
+			directionToHub: null,//this user's angle to the hub
+			positions: [],//object containing al user's positions in the coordinate system
+			directions: []//object containing the directions of this user to other users
 		},
 		sgDevice = {
 			orientation: {},
-			isCalibrated: false,
-			compassCorrection: 0
+			compassCorrection: 0,
+			referenceCorrection: 0
 		},
 		sgUsers = [],//array of users, in order of joining
 		sgCalibratedUsers = [],
-		sgDirections = [];//array of directions to users
+		sgHubsDirections = [];//array of directions to users relative to hub, in order of direction
 
 	var $sgCalibrationBox = $('#calibration-box');
 
@@ -50,8 +53,8 @@
 	* add identifier for this user
 	* @returns {undefined}
 	*/
-	var initIdentifier = function() {
-		$('#id-box').find('.user-id').text(io.id);
+	var displayIdentifier = function() {
+		$('#id-box').find('.user-id').text(sgUser.username+' '+sgUser.id);
 	};
 
 	/**
@@ -61,6 +64,24 @@
 	var getLatestUser = function() {
 		return sgUsers[sgUsers.length-1];
 	};
+
+
+	/**
+	* get a user from the users-array by their id
+	* @param {string} id The id of the user to find
+	* @returns {object} the searched for user object or false
+	*/
+	var getUserById = function(id) {
+		var user;
+		for (var i=0, len=sgUsers.length; i<len; i++) {
+			if (sgUsers[i].id === id) {
+				user = sgUsers[i];
+				break;
+			}
+		}
+		return user;
+	};
+	
 
 
 	/**
@@ -89,12 +110,24 @@
 	};
 
 
-
 	/**
-	* change a property of the current user and send changed users object to sockets
+	* handle update of users array
+	* @param {object} data Object containing updated users array and the updated user {users, changedUser}
 	* @returns {undefined}
 	*/
-	var updateUserAndEmit = function(prop, val) {
+	var updateusersHandler = function(data) {
+		sgUsers = data.users;
+		console.log('update users; changed: idx'+data.changedUser.idx);
+	};
+	
+
+
+	/**
+	* change a property of the current user and send changed users object to server
+	* server stores the changed users object and sends object to sockets
+	* @returns {undefined}
+	*/
+	var updateUser = function(prop, val) {
 		sgUser[prop] = val;
 		for (var i=0, len=sgUsers.length; i<len; i++) {
 			var currUser = sgUsers[i];
@@ -103,7 +136,12 @@
 				break;
 			}
 		}
-		emitEvent('updateusers', sgUsers);
+
+		var data = {
+			users: sgUsers,
+			changedUser: sgUser
+		}
+		io.emit('updateusers', data);
 	};
 	
 
@@ -192,6 +230,7 @@
 	var joinedHandler = function(users) {
 		//this remote has been joined the room
 		$('#login-form').hide();
+		console.log(users);
 		sgUsers = users;
 
 		var idx = sgUsers.length-1;
@@ -207,14 +246,17 @@
 			 	usernames.push(users[i].username);
 			}
 			usernames = usernames.join(', ');
-			//console.log('you just joined the room with ',usernames);
-			//showCalibration();
 		}
 
-		//setup listener for calibration events, so we know when it's this user's turn
+		//set up listener for when another user has calibrated; only needs to be picked up by hub, but subscribe all in case hub leaves the room
+		io.on('calibrationready.positionawaresockets', calibrationreadyHandler);
+		//set up listener for when a new calibration can start
+		io.on('calibrationpossible.positionawaresockets', calibrationpossibleHandler);
+		//set up listener for calibration events, so we know when it's this user's turn
 		io.on('calibrationupdate.positionawaresockets', calibrationupdateHandler);
 
 		//console.log('number of users:', sgUsers.length);
+		nextCalibration();
 	};
 
 
@@ -228,13 +270,10 @@
 
 		var newUser = getLatestUser();
 		//console.log('new user '+newUser.username+' has just joined');
-		//The first who joins only has to do calibration when the 2nd user joins
-		//The 2nd has to calibrate with nr1 on his own joined-event and with nr3's newUser event
-		//The rest has to do the calibration with their 2 predecessors on their on joined event
-		if (sgUser.isHub && !sgUser.hasKnownPosition) {
+		//The first who joins (idx0) has to do calibration when the 2nd user joins
+		//idx1 has to do new calibration when idx2 joins, if he already calibrated with idx0
+		if ( (sgUser.isHub && sgUsers.length === 2) || (sgUser.idx === 1 && sgUser.directions.length === 1) ) {
 			showCalibration();
-		} else {
-			//if hub hasKnownPosition && this === 2nd showCal()
 		}
 	};
 
@@ -258,7 +297,7 @@
 		io.on('joined', joinedHandler);
 		io.on('newuser', newUserHandler);
 		io.on('disconnect', userDisconnectHandler);
-		io.on('updateusers', function(users) {sgUsers = users;});
+		io.on('updateusers', updateusersHandler);
 	};
 
 
@@ -271,65 +310,71 @@
 	};
 
 
+
+
+
+
 	/**
 	* show the calibration box
 	* @returns {undefined}
 	*/
 	var showCalibration = function() {
-		var idx = sgUser.idx,
-			calibs = sgUser.calibrations,
-			otherUser,
-			otherIdx;
+		if (!sgUser.hasCalibrated) {
+			var idx = sgUser.idx,
+				calibs = sgUser.calibrations,
+				otherUser,
+				otherIdx = 0;//default: everyone but idx0 has to do first calibration with idx0
 
-		//determine which user to point to
-		if (idx === 0) {
-			otherIdx = 1;
-		} else if (idx === 1) {
-			if (calibs === 0) {
-				otherIdx = 0;
-			} else {
-				otherIdx = 2;
+			//determine which user to point to
+			if (idx === 0) {
+				otherIdx = 1;
+			} else if (calibs === 1) {
+				if (idx === 1) {
+					//second user to calibrate with is the next user
+					otherIdx = idx+1;
+				} else {
+					//second user to calibrate with is the previous user
+					otherIdx = idx-1;
+				}
 			}
-		} else {
-			//if calibrations === 0 we have to calibrate with idx -1
-			//if calibrations === 1 we have to calibrate with idx -2
-			otherIdx = idx-calibs-1;
-		}
-		otherUser = sgUsers[otherIdx];
+			otherUser = sgUsers[otherIdx];
 
-		//show calibration box if the other user has already joined (this may not be the case with only 2 users)
-		if (otherUser) {
-			$sgCalibrationBox.find('.calibrate-user-name')
-					.text(otherUser.username)
-				.end()
-				.find('input[name="calibrate-user-id"]')
-					.val(otherUser.id)
-				.end()
-				.show();
+			//show calibration box if the other user has already joined (this may not be the case with only 2 users)
+			if (otherUser) {
+				$sgCalibrationBox.find('.calibrate-user-name')
+						.text(otherUser.username)
+					.end()
+					.find('input[name="calibrate-user-id"]')
+						.val(otherUser.id)
+					.end()
+					.show();
+			} else {
+				console.log('no other user yet');
+			}
 		}
 	};//showCalibration
 
 
 	/**
-	* a calibration has been added or removed
+	* check which user has to calibrate (if any) and show calibration box
 	* @returns {undefined}
 	*/
-	var calibrationupdateHandler = function(directions) {
-		sgDirections = directions;
-
-		//check if there is another user who has to calibrate
-		var done = true;
+	var nextCalibration = function() {
+		//console.log(sgUsers.length);
 		//console.log(sgUsers);
+		var done = true;
+
 		for (var i=0, len=sgUsers.length; i<len; i++) {
 			var user = sgUsers[i];
-			//console.log(user);
-			//console.log(user.hasKnownPosition);
-			if (user.hasKnownPosition) {
+			//console.log('check idx'+user.idx+' cal:'+user.hasCalibrated);
+			if (user.hasCalibrated) {
 				//continue
 				if (user.id === sgUser.id) {console.log('my position is known')}
 			} else {
-				//this is the first joining user that hasn't calibrated yet
+				//we found the first joining user who hasn't calibrated yet
+				//check to see if it is us
 				done = false;
+				console.log('aan de beurt: idx'+user.idx);
 				if (user.id === sgUser.id) {
 					console.log('my position isnt known');
 					//then this user has to calibrate
@@ -338,15 +383,69 @@
 				break;
 			}
 		}
-
 		if (done) {
-			//hide message that not everyone is ready
+			console.log('we\'re done calibrating');
 		}
+	};
+	
+
+
+	/**
+	* a calibration has been added
+	* @returns {undefined}
+	*/
+	var calibrationupdateHandler = function(directions) {
+		nextCalibration();
 	};
 
 
 	/**
+	* a new calibration can be started
+	* @returns {undefined}
+	*/
+	var calibrationpossibleHandler = function() {
+		//console.log('calibrationpossibleHandler');
+		nextCalibration();
+	};
+	
+
+
+	/**
+	* another user has done his calibration
+	* if we're the hub, update the directions array and send event
+	* @param {array} userDirections Object containing other user's id and directions to hub and another user: [{fromId, toId, dir},{fromId, toId, dir}]
+	* @returns {undefined}
+	*/
+	var calibrationreadyHandler = function(userDirections) {
+		console.log('calibrationreadyHandler', userDirections);
+		if (sgUser.isHub) {
+			//we only want the hub to do something
+			var senderId = userDirections[0].fromId,
+				sender = getUserById(senderId);
+
+			if (sender.isHub) {
+				//we're the hub receiving our own calibration; this is the angle towards idx1
+				//the axis idx0 - idx1 will be our 0-degrees reference angle
+				//so we have to determine the hub's correction-angle
+				sgDevice.referenceCorrection = userDirections[0].dir;
+			} else if (sender.idx === 1) {
+				//then we can store his stuff, but we can't conclude anything yet
+
+			} else {
+				//we can calculate the sending user's position in hub's coordinate system
+			}
+			console.log('go emit calposible');
+			emitEvent('calibrationpossible.positionawaresockets');
+
+		}
+		//no code here, we only want the hub to do something
+	};
+	
+
+
+	/**
 	* handle clicking calibration button
+	* so a user has done a calibration
 	* @returns {undefined}
 	*/
 	var calibrationHandler = function(e) {
@@ -357,34 +456,63 @@
 		sgDevice.compassCorrection = sgDevice.orientation.dir;
 		var dir = sgDevice.orientation.dir,
 			otherUserId = $(e.currentTarget).find('[name="calibrate-user-id"]').val(),
-			dirObject = {
+			currCalibration = {
 				fromId: sgUser.id,
 				toId: otherUserId,
 				dir: dir
 			};
-		log('dir:'+sgDevice.orientation.dir+'<br>'+otherUserId);
-		sgDirections.push(dirObject);
 
-		//update number of calibrations and see if we're done
+		log('dir:'+sgDevice.orientation.dir+'<br>'+otherUserId);
+		sgUser.directions.push(currCalibration);
+
+		//update number of calibrations and see if we're done for this user
 		sgUser.calibrations++;
 
-		if (sgUser.idx === 0) {
-			//then we only have to calibrate with one user, so we're done
-			updateUserAndEmit('hasKnownPosition', true);
-			console.log('I\'m idx0; I am done');
-		} else if (sgUser.idx === 1 && sgUser.calibrations === 1 && sgUsers.length === 2) {
-			//then we only have idx0 and idx1
-			//we could start interacting with idx0
-			//but we're not done until idx2 joins and we calibrate with idx2
-			console.log('Im idx1; I am done for now, but need more');
-		} else if (sgUser.calibrations === 2) {
-			//then we're done
-			updateUserAndEmit('hasKnownPosition', true);
+		//if this is not the hub, store
+		if (!sgUser.isHub && sgUser.calibrations === 1) {
+			//then we've just calibrated with hub; store position
+			//the user's device's 0 angle is the angle he held it when starting the app
+			//this is de angle to the hub relative to that starting angle
+			//we do not yet know how his starting angle relates to the hubs coordinate system!
+			sgUser.directionToHub = dir;
 		}
 
-		//send the updated directions object to the other sockets
-		emitEvent('calibrationupdate.positionawaresockets', sgDirections);
+		//deze hebben we toch nodig
 
+		if (sgUser.idx === 0 || sgUser.calibrations === 2) {
+			//then we only have to calibrate with one user, so we're done
+			updateUser('hasCalibrated', true);
+			console.log('I\'m idx'+sgUser.idx+'; I am done');
+			//notify that calibration is done; will be picked up by hub
+			emitEvent('calibrationready.positionawaresockets', sgUser.directions);
+		} else if (sgUser.idx === 1 && sgUser.calibrations === 1 && sgUsers.length === 2) {
+			//idx1 has calibrated, but we only have idx0 and idx1
+			//idx1 could start interacting with idx0
+			//but we're not done until idx2 joins and we calibrate with idx2
+			console.log('Im idx1; I am done for now, but need more');
+		} else {
+			//this is >= idx2 who has done first calibration (with idx0)
+			//they have to calibrate with the previous joined user
+			console.log('I\'m idx'+sgUser.idx+'; I have done 1st calibration');
+			showCalibration();
+		}
+
+		//newer
+		/*
+		if (sgUser.idx <= 1 || sgUser.calibrations === 2) {
+			//idx0 and idx1 only have to calibrate with one user, others with 2
+			updateUser('hasCalibrated', true);
+			console.log('I\'m idx'+sgUser.idx+'; I am done');
+			//emitEvent('calibrationupdate.positionawaresockets', sgDirections);
+			//notify that calibration is done; will be picked up by hub
+			emitEvent('calibrationready.positionawaresockets', sgUser.directions);
+		} else {
+			//we need to update with one more user
+			showCalibration();
+		}
+		*/
+
+		//send the updated directions object to the other sockets
 	};
 
 
@@ -402,10 +530,10 @@
 	* @returns {undefined}
 	*/
 	var initRemote = function() {
-		initIdentifier();
 		sgUser.id = io.id;
 		sgUser.username = io.id;
 		setUserName();
+		displayIdentifier();
 		setUserColor();
 		initSocketListeners();
 		initDeviceOrientation();
